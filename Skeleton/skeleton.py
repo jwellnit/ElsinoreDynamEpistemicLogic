@@ -1,3 +1,6 @@
+import math
+import copy
+
 #String List: List of Characters
 characters = ["Ophelia", "p1", "p2", "p3", "p4"]
 charLoc = {"Ophelia":"l1", "p1":"l1", "p2":"l2", "p3":"l3", "p4":"l4"}
@@ -29,13 +32,33 @@ go2 = Event("go2", 840, 840, ["p4"], "l2", goTemplate)
 defaultSchedule = [e1, go1, go2, m1]
 currentSchedule = defaultSchedule
 
-def AddToSchedule(event):
+def AddToSchedule(event, schedule):
+    newSchedule = schedule.copy()
+    if len(newSchedule) == 0:
+        newSchedule.append(event)
+    else:
+        added = False
+        for i in range(len(schedule)):
+            if schedule[i].startTime >= event.startTime:
+                newSchedule.insert(i, event)
+                added = True
+                break
+        if added == False:
+            newSchedule.append(event)
+        for e in schedule:
+            if ((e.startTime < event.endTime) and (e.endTime >= event.endTime)) or ((event.startTime < e.endTime) and (event.endTime >= e.endTime)):
+                newSchedule.remove(e)
+    return newSchedule
 
+def RemoveFromSchedule(event, schedule):
+    newSchedule = schedule.copy()
+    newSchedule.remove(event)
+    return newSchedule
 
 #Method: Schedule all available events
 
 #Method: Wait
-def Wait(endTime):
+#def Wait(endTime):
 
 
 #Method: Observe
@@ -54,8 +77,19 @@ def Wait(endTime):
 #Value: Time
 currentTime = 480
 
+dayHash = {"Thursday": 0, "Friday": 1440, "Saturday": 2880, "Sunday": 4320}
+dayHashR = {0: "Thursday", 1440: "Friday", 2880: "Saturday", 4320: "Sunday"}
+
 def TextTimeToInt(time):
-    time_list =
+    time_list = time.split(":")
+    day = dayHash[time_list[0]]
+    hour = int(time_list[1])*60
+    minute = int(time_list[2])
+    return day+hour+minute
+
+def IntToTextTime(time):
+    day = dayHashR[math.floor(time/1440)*1440]
+    return day + ":" + str(math.floor((time%1440)/60)) + ":" + str((time%1440)%60)
 
 #Value: Loop
 currentLoop = 1
@@ -69,7 +103,7 @@ currentLoop = 1
 #runtime action taking. This template is restored to the default on a loop reset.
 
 #Method: AddAction
-def AddAction(action):
+#def AddAction(action):
 
 
 #Method: RunGame
@@ -77,3 +111,17 @@ def AddAction(action):
 #Reading beliefs and actions from ostari, also possibly not doable in runtime - simply output from run game
 
 #Method QueryOutput
+
+time = ("Thursday:13:53")
+time = TextTimeToInt(time)
+print(str(time))
+time = IntToTextTime(time)
+print(time)
+
+print(currentSchedule)
+currentSchedule = AddToSchedule(e2, currentSchedule)
+print(currentSchedule)
+currentSchedule = AddToSchedule(e3, currentSchedule)
+print(currentSchedule)
+currentSchedule = RemoveFromSchedule(e3, currentSchedule)
+print(currentSchedule)
