@@ -19,6 +19,42 @@ class Event:
         self.loc = loc
         self.template = template
 
+class World:
+    """Contains all information for the current state of the world"""
+
+    def __init__(self, raw):
+        self.raw = raw
+        new = raw[:-1].replace("Done.", "")
+        new = new.replace(" looks like:", "")
+        new = new.split(repr("\r\n").replace("'", ""))
+        for c in new.copy():
+            if c == "":
+                new.remove(c)
+            if c == " ":
+                new.remove(c)
+        factored = {}
+        for c in new:
+            s = c.split(":")
+            s[1] = s[1].replace("[", "").replace("]", "").split('","')
+            for i in range(len(s[1])):
+                s[1][i] = s[1][i].replace('"', "")
+            factored[s[0]]=s[1]
+        self.factored = factored
+
+    def query(str):
+        return self.factored[str]
+
+    def changes(self, old):
+        ret = {}
+        for i in self.factored.items():
+            j = old.factored[i[0]]
+            r= []
+            for q in i[1]:
+                if !j.contains(q):
+                    r.append(q)
+            ret[i[0]] = r
+
+
 executeTemplate = "execute$name$($name$, $chars$ $loc$, $obs$)"
 goTemplate = "go($chars$ $loc$)"
 
@@ -140,8 +176,10 @@ def RunGame():
     f = open(fname,"w")
     f.write(content)
     f.close()
-    out = subprocess.check_output([ostari_path, fname])
-    print(out)
+    out = str(subprocess.check_output([ostari_path, fname]))
+    ind = out.find(":")
+    out = out[ind+1:]
+    ret = World(out)
 
 
 #Reading beliefs and actions from ostari, also possibly not doable in runtime - simply output from run game
@@ -157,5 +195,6 @@ f.close()
 
 action_sequence = ""
 
-ExecuteEvent(e1)
+worldState = World("")
+
 ExecuteEvent(m1)
