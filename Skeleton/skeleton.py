@@ -1,5 +1,7 @@
 import math
 import copy
+import sys
+import subprocess
 
 #String List: List of Characters
 characters = ["Ophelia", "p1", "p2", "p3", "p4"]
@@ -17,8 +19,8 @@ class Event:
         self.loc = loc
         self.template = template
 
-executeTemplate = "execute$name$($name$, $chars$, $loc$, observer(unit))"
-goTemplate = "go($chars$, $loc$)"
+executeTemplate = "execute$name$($name$, $chars$ $loc$, $obs$)"
+goTemplate = "go($chars$ $loc$)"
 
 #Manual Definitions, events
 e1 = Event("e1", 540, 600, ["p1", "p2"], "l2", executeTemplate)
@@ -62,15 +64,38 @@ def RemoveFromSchedule(event, schedule):
 
 
 #Method: Observe
+def Observe(event):
+    ret = event.template
+    char_string = ""
+    for c in event.chars:
+        char_string += c + ","
+    ret = ret.replace("$name$", event.name)
+    ret = ret.replace("$chars$", char_string)
+    ret = ret.replace("$loc$", event.loc)
+    ret = ret.replace("$obs$", "unit")
+    AddAction(ret)
+    RunGame()
 
 #Method: Execute Events
-
+def ExecuteEvent(event):
+    ret = event.template
+    char_string = ""
+    for c in event.chars:
+        char_string += c + ","
+    ret = ret.replace("$name$", event.name)
+    ret = ret.replace("$chars$", char_string)
+    ret = ret.replace("$loc$", event.loc)
+    ret = ret.replace("$obs$", "unit")
+    AddAction(ret)
+    RunGame()
 
 #Method: Tell Hearsay
 
 #Method: Query
 
 #Method: Reset
+#def Reset():
+
 
 #Hash: player/hearsay -> belief/goal
 
@@ -103,25 +128,34 @@ currentLoop = 1
 #runtime action taking. This template is restored to the default on a loop reset.
 
 #Method: AddAction
-#def AddAction(action):
+def AddAction(action):
+    global action_sequence
+    action_sequence += action
 
 
 #Method: RunGame
+def RunGame():
+    content = template.replace("$$", action_sequence)
+    fname = "elsinore_ostari_loop"+ str(currentLoop) + ".cfg"
+    f = open(fname,"w")
+    f.write(content)
+    f.close()
+    out = subprocess.check_output([ostari_path, fname])
+    print(out)
+
 
 #Reading beliefs and actions from ostari, also possibly not doable in runtime - simply output from run game
 
 #Method QueryOutput
 
-time = ("Thursday:13:53")
-time = TextTimeToInt(time)
-print(str(time))
-time = IntToTextTime(time)
-print(time)
+ostari_path = sys.argv[1]
+template_path = sys.argv[2]
 
-print(currentSchedule)
-currentSchedule = AddToSchedule(e2, currentSchedule)
-print(currentSchedule)
-currentSchedule = AddToSchedule(e3, currentSchedule)
-print(currentSchedule)
-currentSchedule = RemoveFromSchedule(e3, currentSchedule)
-print(currentSchedule)
+f = open(template_path, "r")
+template = f.read()
+f.close()
+
+action_sequence = ""
+
+ExecuteEvent(e1)
+ExecuteEvent(m1)

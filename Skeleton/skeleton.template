@@ -124,12 +124,7 @@ at(p4) = l4()
 looks like (Ophelia, p1, p2, p3, p4): Initial
 
 Execute:
-print: model
-executee1(e1, p1, p2, l2, Ophelia)
-print: model
-go(p3, l4)
-go(p4, l3)
-executem1(m1, Ophelia, p3, l2, unit)
+$$
 print: model
 
 Done.
