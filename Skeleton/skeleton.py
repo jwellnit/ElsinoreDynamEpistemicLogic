@@ -59,9 +59,14 @@ class World:
 executeTemplate = "execute$name$($name$, $chars$ $loc$, $obs$)"
 goTemplate = "go($chars$ $loc$)"
 tellTemplate = "tellHearsay($player$, $char$, $hearsay$)"
-beliefTemplate = "updateBeliefO($char$, $belief$, $obs$)"
-hearsayTemplate = "updateHearsay($player$, $hearsay$)"
-goalTemplate = "updateGoalO($char$, $goal$, $obs$)"
+beliefTemplate = "updateBeliefO($char$, $belief$, $obs$, $bool$)"
+hearsayTemplate = "updateHearsay($player$, $hearsay$, $bool$)"
+goalTemplate = "updateGoalO($char$, $goal$, $obs$, $bool$)"
+busyTemplate = "setBusyO($char$, $bool$, $obs$)"
+upsetTemplate = "setUpsetO($char$, $bool$, $obs$)"
+shatteredTemplate = "setShatteredO($char$, $bool$, $obs$)"
+deadTemplate = "setBDeadO($char$, $bool$, $obs$)"
+cancelTemplate = "cancelEvent($name$)"
 
 
 #Manual Definitions, events
@@ -92,6 +97,9 @@ def AddToSchedule(event, schedule):
         for e in schedule:
             if ((e.startTime < event.endTime) and (e.endTime >= event.endTime)) or ((event.startTime < e.endTime) and (event.endTime >= e.endTime)):
                 newSchedule.remove(e)
+                a = cancelTemplate.replace("$name$", e.name)
+                AddAction(a)
+    RunGame()
     return newSchedule
 
 def RemoveFromSchedule(event, schedule):
