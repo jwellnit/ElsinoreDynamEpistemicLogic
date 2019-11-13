@@ -35,6 +35,7 @@ class World:
         factored = {}
         for c in new:
             s = c.split(":")
+            print(s)
             s[1] = s[1].replace("[", "").replace("]", "").split('","')
             for i in range(len(s[1])):
                 s[1][i] = s[1][i].replace('"', "")
@@ -61,7 +62,6 @@ tellTemplate = "tellHearsay($player$, $char$, $hearsay$)"
 beliefTemplate = "updateBeliefO($char$, $belief$, $obs$)"
 hearsayTemplate = "updateHearsay($player$, $hearsay$)"
 goalTemplate = "updateGoalO($char$, $goal$, $obs$)"
-goTemplate = "go($player$, $loc$)"
 
 
 #Manual Definitions, events
@@ -142,6 +142,8 @@ def ExecuteEvent(event):
     RunGame()
 
 #Method: Tell Hearsay
+def TellHearsay(char, hearsay):
+    AddAction(hearsayTemplate.replace("$player$", "Ophelia").replace("$hearsay$", hearsay).replace("$char$", char))
 
 #Method: Query
 def Query(name):
@@ -149,7 +151,7 @@ def Query(name):
 
 #Method: Go
 def Go(loc):
-    AddAction(goTemplate.replace("$player$", "Ophelia").replace("$loc$", "loc"))
+    AddAction(goTemplate.replace("$char$", "Ophelia").replace("$loc$", "loc"))
     RunGame()
 
 
