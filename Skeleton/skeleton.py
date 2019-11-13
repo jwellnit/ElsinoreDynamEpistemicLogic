@@ -57,6 +57,12 @@ class World:
 
 executeTemplate = "execute$name$($name$, $chars$ $loc$, $obs$)"
 goTemplate = "go($chars$ $loc$)"
+tellTemplate = "tellHearsay($player$, $char$, $hearsay$)"
+beliefTemplate = "updateBeliefO($char$, $belief$, $obs$)"
+hearsayTemplate = "updateHearsay($player$, $hearsay$)"
+goalTemplate = "updateGoalO($char$, $goal$, $obs$)"
+goTemplate = "go($player$, $loc$)"
+
 
 #Manual Definitions, events
 e1 = Event("e1", 540, 600, ["p1", "p2"], "l2", executeTemplate)
@@ -142,8 +148,23 @@ def Query(name):
     print(name + ": " + str(worldState.factored[name]))
 
 #Method: Reset
-#def Reset():
+def Reset():
+    global currentSchedule
+    global currentTime
+    global action_sequence
+    global currentLoop
 
+    currentTime = 480
+    currentSchedule = defaultSchedule.copy()
+    action_sequence = ""
+
+    for i in worldState.query("Ophelia"):
+        if i.contains("knows"):
+            h = i.replace("knows)", "").replace(",true)", "")
+            action_sequence.append(hearsayTemplate.replace("$player$", "Ophelia").replace("$hearsay$", h))
+
+    currentLoop += 1
+    RunGame()
 
 #Hash: player/hearsay -> belief/goal
 
