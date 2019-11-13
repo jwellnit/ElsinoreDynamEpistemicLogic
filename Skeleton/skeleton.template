@@ -1,8 +1,8 @@
 Types:
 Players = Ophelia, p1, p2, p3, p4, unit
 Observers = Ophelia, unit
-Beliefs = b1, b2, b3, b4
-Goals = g1, g2, g3
+Beliefs = b1, b2
+Goals = g1, g2
 Hearsay = h1
 Events = e1, e2, e3, m1
 Bool = true, false
@@ -14,8 +14,8 @@ Locations = l1, l2, l3, l4, null
 Properties:
 at :: Players -> Locations ()
 dead :: Players -> Bool ()
-believes :: Beliefs -> Bool ()
-goal :: Goals -> Bool ()
+believes :: Beliefs -> Players -> Bool ()
+goal :: Goals -> Players -> Bool ()
 knows :: Hearsay -> Bool ()
 resultsB :: Players -> Hearsay -> Beliefs ()
 resultsG :: Players -> Hearsay -> Beliefs ()
@@ -41,54 +41,72 @@ precondition dead(p) != true;
 public (p) knows(h) = true
 }
 
-updateBelief(p: Players, b: Beliefs) {
-public (p) believes(b) = true
+updateBelief(p: Players, b: Beliefs, t: Bool) {
+public (p) believes(b, p) = t
 }
 
-updateGoal(p: Players, g: Goals) {
-public (p) goal(g) = true
+updateGoal(p: Players, g: Goals, t: Bool) {
+public (p) goal(g, p) = t
 }
 
-updateBeliefO(p: Players, b: Beliefs, o: Players) {
-public (p) believes(b) = true
+updateBeliefO(p: Players, b: Beliefs, o: Players, t: Bool) {
+public (p, o) believes(b, p) = t
 }
 
-updateGoalO(p: Players, g: Goals, o: Players) {
-public (p) goal(g) = true
+updateGoalO(p: Players, g: Goals, o: Players, t: Bool) {
+public (p, o) goal(g, p) = t
 }
 
-updateHearsay(p: Players, h: Hearsay) {
-public (p) knows(h) = true
+updateHearsay(p: Players, h: Hearsay, t: Bool) {
+public (p) knows(h) = t
 }
 
 setBusy(p: Players, b: Bool) {
-busy(p) = b
+public (p) busy(p) = b
 }
 
 setUpset(p: Players, b: Bool) {
-upset(p) = b
+public (p) upset(p) = b
 }
 
 setShattered(p: Players, b: Bool) {
-shattered(p) = b
+public (p) shattered(p) = b
 }
 
 setDead(p: Players, b: Bool) {
-dead(p) = b
+public (p) dead(p) = b
 }
 
-cancelEvent(e: Events, p: Players) {
+setBusyO(p: Players, b: Bool, o: Players) {
+public (p, o) busy(p) = b
+}
+
+setUpsetO(p: Players, b: Bool, o: Players) {
+public (p, o) upset(p) = b
+}
+
+setShatteredO(p: Players, b: Bool, o: Players) {
+public (p, o) shattered(p) = b
+}
+
+setDeadO(p: Players, b: Bool, o: Players) {
+public (p, o) dead(p) = b
+}
+
+cancelEvent(e: Events) {
 scheduled(e) = false;
 impossible(e) = true
 }
 
-schedulee1(e: Events) {
-//event specific preconditions here
+schedulee2(e: Events) {
+precondition believes(b1, p2) = true
+precondition goal(g1, p2) = true
 scheduled(e) = true
 }
 
-schedulee1(e: Events) {
-//event specific preconditions here
+schedulee3(e: Events) {
+precondition believes(b2, p3) = true
+precondition goal(g2, p3) = true
 scheduled(e) = true
 }
 
@@ -96,23 +114,27 @@ executee1(e: Events, c1: Players, c2: Players, l: Locations, o: Observers) {
 at(c1) = l;
 at(c2) = l;
 public(o) knows(h1) = true;
-completed(e) = true
+completed(e) = true;
+scheduled(e) = false
 }
 
 executee2(e: Events, c1: Players, c2: Players, c3: Players, c4: Players, l: Locations, o: Observers) {
 public (Players) shattered(c1) = true;
-completed(e) = true
+completed(e) = true;
+scheduled(e) = false
 }
 
 executee3(e: Events, c1: Players, c2: Players, c3: Players, c4: Players, l: Locations, o: Observers) {
 public (Players) dead(c1) = true;
-completed(e) = true
+completed(e) = true;
+scheduled(e) = false
 }
 
 executem1(e: Events, c1: Players, c2: Players, l: Locations, o: Observers) {
 dead(c1) = true;
 loop(unit) = reset;
-completed(e) = true
+completed(e) = true;
+scheduled(e) = false
 }
 
 Initial:
@@ -125,5 +147,6 @@ looks like (Ophelia, p1, p2, p3, p4): Initial
 
 Execute:
 $$
+print: model
 
 Done.

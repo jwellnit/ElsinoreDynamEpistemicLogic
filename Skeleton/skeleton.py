@@ -11,13 +11,14 @@ charLoc = {"Ophelia":"l1", "p1":"l1", "p2":"l2", "p3":"l3", "p4":"l4"}
 class Event:
     """Contains all information for event"""
 
-    def __init__(self, name, startTime, endTime, chars, loc, template):
+    def __init__(self, name, startTime, endTime, chars, loc, template, preconditions):
         self.name = name
         self.startTime = startTime
         self.endTime = endTime
         self.chars = chars
         self.loc = loc
         self.template = template
+        self.preconditions = preconditions
 
 class World:
     """Contains all information for the current state of the world"""
@@ -67,15 +68,18 @@ upsetTemplate = "setUpsetO($char$, $bool$, $obs$)"
 shatteredTemplate = "setShatteredO($char$, $bool$, $obs$)"
 deadTemplate = "setBDeadO($char$, $bool$, $obs$)"
 cancelTemplate = "cancelEvent($name$)"
+scheduleTemplate = "schedule$name$($name$)"
 
 
 #Manual Definitions, events
-e1 = Event("e1", 540, 600, ["p1", "p2"], "l2", executeTemplate)
-e2 = Event("e2", 2160, 2220, ["p1", "p2", "p3", "p4"], "l3", executeTemplate)
-e3 = Event("e3", 2160, 2220, ["p1", "p2", "p3", "p4"], "l4", executeTemplate)
-m1 = Event("m1", 2880, 2880, ["Ophelia", "p3"], "null", executeTemplate)
-go1 = Event("go1", 720, 720, ["p3"], "l2", goTemplate)
-go2 = Event("go2", 840, 840, ["p4"], "l2", goTemplate)
+e1 = Event("e1", 540, 600, ["p1", "p2"], "l2", executeTemplate, [])
+e2 = Event("e2", 2160, 2220, ["p1", "p2", "p3", "p4"], "l3", executeTemplate, ["believes(b1,p2,true)", "goal(g1,p2,true)"])
+e3 = Event("e3", 2160, 2220, ["p1", "p2", "p3", "p4"], "l4", executeTemplate, ["believes(b2,p3,true)", "goal(g2,p3,true)"])
+m1 = Event("m1", 2880, 2880, ["Ophelia", "p3"], "null", executeTemplate, [])
+go1 = Event("go1", 720, 720, ["p3"], "l2", goTemplate, [])
+go2 = Event("go2", 840, 840, ["p4"], "l2", goTemplate, [])
+
+events[e2,e3]
 
 #Priority Queue: Schedule
 defaultSchedule = [e1, go1, go2, m1]
@@ -108,6 +112,25 @@ def RemoveFromSchedule(event, schedule):
     return newSchedule
 
 #Method: Schedule all available events
+def ScheduleEvents():
+    state = worldState.query("Truth")
+    for e in events:
+        s = "scheduled($name$,true)".replace("$name$", e.name)
+        i = "impossible($name$,true)".replace("$name$", e.name)
+        c = "completed($name$,true)".replace("$name$", e.name)
+        if (not state.contains(s)) and (not state.contains(i)) and (not state.contains(c)) and e.startTime > currentTime:
+            sat = True
+            for p in e.preconditions:
+                if not state.contains(p):
+                    sat = False
+            if sat:
+                AddAction(scheduleTemplate.replace("$name$", e.name))
+                RunGame()
+                AddToSchedule(e)
+    return
+
+def ResolveHearsay(char, hearsay):
+    return
 
 #Method: Wait
 def Wait(endTime):
