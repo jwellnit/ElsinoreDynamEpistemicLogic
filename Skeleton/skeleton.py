@@ -147,6 +147,12 @@ def ExecuteEvent(event):
 def Query(name):
     print(name + ": " + str(worldState.factored[name]))
 
+#Method: Go
+def Go(loc):
+    AddAction(goTemplate.replace("$player$", "Ophelia").replace("$loc$", "loc"))
+    RunGame()
+
+
 #Method: Reset
 def Reset():
     global currentSchedule
@@ -161,7 +167,7 @@ def Reset():
     for i in worldState.query("Ophelia"):
         if i.contains("knows"):
             h = i.replace("knows)", "").replace(",true)", "")
-            action_sequence.append(hearsayTemplate.replace("$player$", "Ophelia").replace("$hearsay$", h))
+            AddAction(hearsayTemplate.replace("$player$", "Ophelia").replace("$hearsay$", h))
 
     currentLoop += 1
     RunGame()
