@@ -77,7 +77,7 @@ def AddToSchedule(event, schedule):
     else:
         added = False
         for i in range(len(schedule)):
-            if schedule[i].startTime >= event.startTime:
+            if schedule[i].endTime >= event.endTime:
                 newSchedule.insert(i, event)
                 added = True
                 break
@@ -96,7 +96,13 @@ def RemoveFromSchedule(event, schedule):
 #Method: Schedule all available events
 
 #Method: Wait
-#def Wait(endTime):
+def Wait(endTime):
+    global currentSchedule
+    while(len(currentSchedule) > 0):
+        next = currentSchedule.pop(0)
+        if next.endTime > endTime:
+            break
+        ExecuteEvent(next)
 
 
 #Method: Observe
@@ -108,7 +114,7 @@ def Observe(event):
     ret = ret.replace("$name$", event.name)
     ret = ret.replace("$chars$", char_string)
     ret = ret.replace("$loc$", event.loc)
-    ret = ret.replace("$obs$", "unit")
+    ret = ret.replace("$obs$", "Ophelia")
     AddAction(ret)
     RunGame()
 
