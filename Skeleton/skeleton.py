@@ -50,7 +50,7 @@ class World:
             j = old.factored[i[0]]
             r= []
             for q in i[1]:
-                if !j.contains(q):
+                if not j.contains(q):
                     r.append(q)
             ret[i[0]] = r
 
@@ -98,12 +98,16 @@ def RemoveFromSchedule(event, schedule):
 #Method: Wait
 def Wait(endTime):
     global currentSchedule
+    global currentTime
     while(len(currentSchedule) > 0):
         next = currentSchedule.pop(0)
         if next.endTime > endTime:
+            currentSchedule.insert(0, next)
             break
         ExecuteEvent(next)
-
+    currentTime = endTime
+    print("Current Time: " + str(currentTime))
+    print("Current Schedule: " + str(currentSchedule))
 
 #Method: Observe
 def Observe(event):
@@ -134,6 +138,8 @@ def ExecuteEvent(event):
 #Method: Tell Hearsay
 
 #Method: Query
+def Query(name):
+    print(name + ": " + str(worldState.factored[name]))
 
 #Method: Reset
 #def Reset():
@@ -177,6 +183,7 @@ def AddAction(action):
 
 #Method: RunGame
 def RunGame():
+    global worldState
     content = template.replace("$$", action_sequence)
     fname = "elsinore_ostari_loop"+ str(currentLoop) + ".cfg"
     f = open(fname,"w")
@@ -185,7 +192,7 @@ def RunGame():
     out = str(subprocess.check_output([ostari_path, fname]))
     ind = out.find(":")
     out = out[ind+1:]
-    ret = World(out)
+    worldState = World(out)
 
 
 #Reading beliefs and actions from ostari, also possibly not doable in runtime - simply output from run game
@@ -203,4 +210,5 @@ action_sequence = ""
 
 worldState = World("")
 
-ExecuteEvent(m1)
+Wait(2000)
+Query("Ophelia")
