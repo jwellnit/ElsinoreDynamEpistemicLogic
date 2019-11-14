@@ -43,7 +43,7 @@ class World:
             factored[s[0]]=s[1]
         self.factored = factored
 
-    def query(str):
+    def query(self, str):
         return self.factored[str]
 
     def changes(self, old):
@@ -57,16 +57,16 @@ class World:
             ret[i[0]] = r
 
 
-executeTemplate = "execute$name$($name$, $chars$ $loc$, $obs$)"
-goTemplate = "go($chars$ $loc$)"
-tellTemplate = "tellHearsay($player$, $char$, $hearsay$)"
-beliefTemplate = "updateBeliefO($char$, $belief$, $obs$, $bool$)"
-hearsayTemplate = "updateHearsay($player$, $hearsay$, $bool$)"
-goalTemplate = "updateGoalO($char$, $goal$, $obs$, $bool$)"
-busyTemplate = "setBusyO($char$, $bool$, $obs$)"
-upsetTemplate = "setUpsetO($char$, $bool$, $obs$)"
-shatteredTemplate = "setShatteredO($char$, $bool$, $obs$)"
-deadTemplate = "setBDeadO($char$, $bool$, $obs$)"
+executeTemplate = "execute$name$($name$,$chars$$loc$,$obs$)"
+goTemplate = "go($chars$$loc$)"
+tellTemplate = "tellHearsay($player$,$char$,$hearsay$)"
+beliefTemplate = "updateBeliefO($char$,$belief$,$obs$,$bool$)"
+hearsayTemplate = "updateHearsay($player$,$hearsay$,$bool$)"
+goalTemplate = "updateGoalO($char$,$goal$,$obs$,$bool$)"
+busyTemplate = "setBusyO($char$,$bool$,$obs$)"
+upsetTemplate = "setUpsetO($char$,$bool$,$obs$)"
+shatteredTemplate = "setShatteredO($char$,$bool$,$obs$)"
+deadTemplate = "setBDeadO($char$,$bool$,$obs$)"
 cancelTemplate = "cancelEvent($name$)"
 scheduleTemplate = "schedule$name$($name$)"
 
@@ -79,7 +79,7 @@ m1 = Event("m1", 2880, 2880, ["Ophelia", "p3"], "null", executeTemplate, [])
 go1 = Event("go1", 720, 720, ["p3"], "l2", goTemplate, [])
 go2 = Event("go2", 840, 840, ["p4"], "l2", goTemplate, [])
 
-events[e2,e3]
+events = [e2,e3]
 
 #Priority Queue: Schedule
 defaultSchedule = [e1, go1, go2, m1]
@@ -120,10 +120,10 @@ def ScheduleEvents():
         s = "scheduled($name$,true)".replace("$name$", e.name)
         i = "impossible($name$,true)".replace("$name$", e.name)
         c = "completed($name$,true)".replace("$name$", e.name)
-        if (not state.contains(s)) and (not state.contains(i)) and (not state.contains(c)) and e.startTime > currentTime:
+        if (not s in state) and (not i in state) and (not c in state) and e.startTime > currentTime:
             sat = True
             for p in e.preconditions:
-                if not state.contains(p):
+                if not p in state:
                     sat = False
             if sat:
                 AddAction(scheduleTemplate.replace("$name$", e.name))
@@ -134,7 +134,7 @@ def ScheduleEvents():
 def ResolveHearsay(char, hearsay):
     state = worldState.query(char)
     AddAction(hearsayTemplate.replace("$player$", char).replace("$hearsay$", hearsay).replace("$bool$", "false"))
-    new = results[[char, hearsay]]
+    new = results[char + ":" + hearsay]
     for n in new:
         switch = {
         "upset" : upsetTemplate.replace("$char$",char).replace("$bool$","true").replace("$obs$","Ophelia"),
@@ -228,8 +228,8 @@ def Reset():
 
 #Hash: player/hearsay -> belief/goal
 result = {
-["p2", "h1"] : [("belief","b1"), ("goal","g1"), ("upset")],
-["p3", "h1"] : [("belief","b2"), ("goal","g2")]
+"p2:h1" : [("belief","b1"), ("goal","g1"), ("upset")],
+"p3:h1" : [("belief","b2"), ("goal","g2")]
 }
 
 #Value: Time
