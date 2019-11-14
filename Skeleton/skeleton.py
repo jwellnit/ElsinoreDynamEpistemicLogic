@@ -6,6 +6,8 @@ import subprocess
 #String List: List of Characters
 characters = ["Ophelia", "p1", "p2", "p3", "p4"]
 charLoc = {"Ophelia":"l1", "p1":"l1", "p2":"l2", "p3":"l3", "p4":"l4"}
+hearsayList = ["h1"]
+locs = ["l1", "l2", "l3", "l4"]
 
 #Class: Event
 class Event:
@@ -19,6 +21,9 @@ class Event:
         self.loc = loc
         self.template = template
         self.preconditions = preconditions
+
+    def __repr__(self):
+        return self.name
 
 class World:
     """Contains all information for the current state of the world"""
@@ -36,7 +41,6 @@ class World:
         factored = {}
         for c in new:
             s = c.split(":")
-            print(s)
             s[1] = s[1].replace("[", "").replace("]", "").split('","')
             for i in range(len(s[1])):
                 s[1][i] = s[1][i].replace('"', "")
@@ -57,18 +61,18 @@ class World:
             ret[i[0]] = r
 
 
-executeTemplate = "execute$name$($name$,$chars$$loc$,$obs$)"
-goTemplate = "go($chars$$loc$)"
-tellTemplate = "tellHearsay($player$,$char$,$hearsay$)"
-beliefTemplate = "updateBeliefO($char$,$belief$,$obs$,$bool$)"
-hearsayTemplate = "updateHearsay($player$,$hearsay$,$bool$)"
-goalTemplate = "updateGoalO($char$,$goal$,$obs$,$bool$)"
-busyTemplate = "setBusyO($char$,$bool$,$obs$)"
-upsetTemplate = "setUpsetO($char$,$bool$,$obs$)"
-shatteredTemplate = "setShatteredO($char$,$bool$,$obs$)"
-deadTemplate = "setBDeadO($char$,$bool$,$obs$)"
-cancelTemplate = "cancelEvent($name$)"
-scheduleTemplate = "schedule$name$($name$)"
+executeTemplate = "execute$name$($name$,$chars$$loc$,$obs$)\n"
+goTemplate = "go($char$,$loc$)\n"
+tellTemplate = "tellHearsay($player$,$char$,$hearsay$)\n"
+beliefTemplate = "updateBeliefO($char$,$belief$,$obs$,$bool$)\n"
+hearsayTemplate = "updateHearsay($player$,$hearsay$,$bool$)\n"
+goalTemplate = "updateGoalO($char$,$goal$,$obs$,$bool$)\n"
+busyTemplate = "setBusyO($char$,$bool$,$obs$)\n"
+upsetTemplate = "setUpsetO($char$,$bool$,$obs$)\n"
+shatteredTemplate = "setShatteredO($char$,$bool$,$obs$)\n"
+deadTemplate = "setBDeadO($char$,$bool$,$obs$)\n"
+cancelTemplate = "cancelEvent($name$)\n"
+scheduleTemplate = "schedule$name$($name$)\n"
 
 
 #Manual Definitions, events
@@ -127,14 +131,17 @@ def ScheduleEvents():
                     sat = False
             if sat:
                 AddAction(scheduleTemplate.replace("$name$", e.name))
-                AddToSchedule(e)
+                AddToSchedule(e, currentSchedule)
     RunGame()
     return
 
 def ResolveHearsay(char, hearsay):
     state = worldState.query(char)
     AddAction(hearsayTemplate.replace("$player$", char).replace("$hearsay$", hearsay).replace("$bool$", "false"))
-    new = results[char + ":" + hearsay]
+    new = result.get(char + ":" + hearsay, "This character is not interested in that hearsay.")
+    if new == "This character is not interested in that hearsay.":
+        print (new)
+        return
     for n in new:
         switch = {
         "upset" : upsetTemplate.replace("$char$",char).replace("$bool$","true").replace("$obs$","Ophelia"),
@@ -160,8 +167,6 @@ def Wait(endTime):
             break
         ExecuteEvent(next)
     currentTime = endTime
-    print("Current Time: " + str(currentTime))
-    print("Current Schedule: " + str(currentSchedule))
 
 #Method: Observe
 def Observe(event):
@@ -193,9 +198,13 @@ def ExecuteEvent(event):
 
 #Method: Tell Hearsay
 def TellHearsay(char, hearsay):
-    AddAction(hearsayTemplate.replace("$player$", "Ophelia").replace("$hearsay$", hearsay).replace("$char$", char))
-    RunGame()
-    ResolveHearsay()
+    backup = action_sequence
+    AddAction(tellTemplate.replace("$player$", "Ophelia").replace("$hearsay$", hearsay).replace("$char$", char).replace("$bool$", "true"))
+    res = RunGame()
+    if res == "ERROR":
+        print("This action is not possible at this time.")
+
+    ResolveHearsay(char, hearsay)
 
 #Method: Query
 def Query(name):
@@ -203,7 +212,7 @@ def Query(name):
 
 #Method: Go
 def Go(loc):
-    AddAction(goTemplate.replace("$char$", "Ophelia").replace("$loc$", "loc"))
+    AddAction(goTemplate.replace("$char$", "Ophelia").replace("$loc$", loc))
     RunGame()
 
 
@@ -228,7 +237,7 @@ def Reset():
 
 #Hash: player/hearsay -> belief/goal
 result = {
-"p2:h1" : [("belief","b1"), ("goal","g1"), ("upset")],
+"p2:h1" : [("belief","b1"), ("goal","g1"), ("upset", "")],
 "p3:h1" : [("belief","b2"), ("goal","g2")]
 }
 
@@ -240,9 +249,13 @@ dayHashR = {0: "Thursday", 1440: "Friday", 2880: "Saturday", 4320: "Sunday"}
 
 def TextTimeToInt(time):
     time_list = time.split(":")
-    day = dayHash[time_list[0]]
+    day = dayHash.get(time_list[0], "Fail")
+    if day == "Fail":
+        return day
     hour = int(time_list[1])*60
     minute = int(time_list[2])
+    if day+hour+minute > 2880 or day+hour+minute < 0:
+        return "Fail"
     return day+hour+minute
 
 def IntToTextTime(time):
@@ -265,6 +278,10 @@ def AddAction(action):
     global action_sequence
     action_sequence += action
 
+#Method: reset action queue
+def AddAction(actions):
+    global action_sequence
+    action_sequence = actions
 
 #Method: RunGame
 def RunGame():
@@ -277,6 +294,8 @@ def RunGame():
     out = str(subprocess.check_output([ostari_path, fname]))
     ind = out.find(":")
     out = out[ind+1:]
+    if not ("Truth" in out):
+        return("ERROR")
     worldState = World(out)
 
 
@@ -295,5 +314,36 @@ action_sequence = ""
 
 worldState = World("")
 
-Wait(2000)
-Query("Ophelia")
+RunGame()
+
+inp = ""
+while (inp != "quit"):
+    print("Current Time: " + IntToTextTime(currentTime))
+    print("Current Schedule: " + str(currentSchedule))
+    print("""Available Actions:
+    wait(<day:hour:minute>)
+    go(<place>)
+    tellHearsay(<character>, <hearsay>)
+    observe(<event>)""")
+    inp = input("Next Action: ")
+    if inp == "quit":
+        break
+    formatted = inp.replace(")", "").split("(")
+    if formatted[0] == "wait":
+        if TextTimeToInt(formatted[1]) == "Fail":
+            print("This is not a valid action")
+        else:
+            Wait(TextTimeToInt(formatted[1]))
+    elif formatted[0] == "go":
+        if formatted[1] in locs:
+            Go(formatted[1])
+        else:
+            print("This is not a valid action")
+    elif formatted[0] == "tellHearsay":
+        args = formatted[1].split(", ")
+        if len(args) == 2 and args[0] in characters and args[1] in hearsayList:
+            TellHearsay(args[0], args[1])
+        else:
+            print("This is not a valid action")
+    else:
+        print("This is not a valid action")
