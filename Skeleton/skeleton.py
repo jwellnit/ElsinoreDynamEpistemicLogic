@@ -109,6 +109,8 @@ def AddToSchedule(event, schedule):
 def RemoveFromSchedule(event, schedule):
     newSchedule = schedule.copy()
     newSchedule.remove(event)
+    a = cancelTemplate.replace("$name$", event.name)
+    AddAction(a)
     return newSchedule
 
 #Method: Schedule all available events
@@ -125,11 +127,26 @@ def ScheduleEvents():
                     sat = False
             if sat:
                 AddAction(scheduleTemplate.replace("$name$", e.name))
-                RunGame()
                 AddToSchedule(e)
+    RunGame()
     return
 
 def ResolveHearsay(char, hearsay):
+    state = worldState.query(char)
+    AddAction(hearsayTemplate.replace("$player$", char).replace("$hearsay$", hearsay).replace("$bool$", "false"))
+    new = results[[char, hearsay]]
+    for n in new:
+        switch = {
+        "upset" : upsetTemplate.replace("$char$",char).replace("$bool$","true").replace("$obs$","Ophelia"),
+        "busy" : busyTemplate.replace("$char$",char).replace("$bool$","true").replace("$obs$","Ophelia"),
+        "shattered" : shatteredTemplate.replace("$char$",char).replace("$bool$","true").replace("$obs$","Ophelia"),
+        "dead" : deadTemplate.replace("$char$",char).replace("$bool$","true").replace("$obs$","Ophelia"),
+        "belief" : beliefTemplate.replace("$char$",char).replace("$bool$","true").replace("$obs$","Ophelia").replace("$belief$",n[1]),
+        "goal" : goalTemplate.replace("$char$",char).replace("$bool$","true").replace("$obs$","Ophelia").replace("$goal$",n[1])
+        }
+        AddAction(switch[n[0]])
+    RunGame()
+    ScheduleEvents()
     return
 
 #Method: Wait
@@ -158,6 +175,7 @@ def Observe(event):
     ret = ret.replace("$obs$", "Ophelia")
     AddAction(ret)
     RunGame()
+    ScheduleEvents()
 
 #Method: Execute Events
 def ExecuteEvent(event):
@@ -171,10 +189,13 @@ def ExecuteEvent(event):
     ret = ret.replace("$obs$", "unit")
     AddAction(ret)
     RunGame()
+    ScheduleEvents()
 
 #Method: Tell Hearsay
 def TellHearsay(char, hearsay):
     AddAction(hearsayTemplate.replace("$player$", "Ophelia").replace("$hearsay$", hearsay).replace("$char$", char))
+    RunGame()
+    ResolveHearsay()
 
 #Method: Query
 def Query(name):
@@ -206,6 +227,10 @@ def Reset():
     RunGame()
 
 #Hash: player/hearsay -> belief/goal
+result = {
+["p2", "h1"] : [("belief","b1"), ("goal","g1"), ("upset")],
+["p3", "h1"] : [("belief","b2"), ("goal","g2")]
+}
 
 #Value: Time
 currentTime = 480
