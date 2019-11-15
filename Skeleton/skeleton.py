@@ -5,7 +5,8 @@ import subprocess
 
 #String List: List of Characters
 characters = ["Ophelia", "p1", "p2", "p3", "p4"]
-charLoc = {"Ophelia":"l1", "p1":"l1", "p2":"l2", "p3":"l3", "p4":"l4"}
+charLocDefault = {"Ophelia":"l1", "p1":"l1", "p2":"l2", "p3":"l3", "p4":"l4"}
+charLoc = charLocDefault
 hearsayList = ["h1"]
 locs = ["l1", "l2", "l3", "l4"]
 
@@ -13,7 +14,7 @@ locs = ["l1", "l2", "l3", "l4"]
 class Event:
     """Contains all information for event"""
 
-    def __init__(self, name, startTime, endTime, chars, loc, template, preconditions):
+    def __init__(self, name, startTime, endTime, chars, loc, template, preconditions, interrupt, die):
         self.name = name
         self.startTime = startTime
         self.endTime = endTime
@@ -21,9 +22,11 @@ class Event:
         self.loc = loc
         self.template = template
         self.preconditions = preconditions
+        self.interrupt = interrupt
+        self.die = die
 
     def __repr__(self):
-        return self.name
+        return self.name + ":" + IntToTextTime(self.startTime) + "-" + IntToTextTime(self.endTime) + ":" + self.loc + "\n"
 
 class World:
     """Contains all information for the current state of the world"""
@@ -56,7 +59,7 @@ class World:
             j = old.factored[i[0]]
             r= []
             for q in i[1]:
-                if not j.contains(q):
+                if not q in j:
                     r.append(q)
             ret[i[0]] = r
 
@@ -76,18 +79,19 @@ scheduleTemplate = "schedule$name$($name$)\n"
 
 
 #Manual Definitions, events
-e1 = Event("e1", 540, 600, ["p1", "p2"], "l2", executeTemplate, [])
-e2 = Event("e2", 2160, 2220, ["p1", "p2", "p3", "p4"], "l3", executeTemplate, ["believes(b1,p2,true)", "goal(g1,p2,true)"])
-e3 = Event("e3", 2160, 2220, ["p1", "p2", "p3", "p4"], "l4", executeTemplate, ["believes(b2,p3,true)", "goal(g2,p3,true)"])
-m1 = Event("m1", 2880, 2880, ["Ophelia", "p3"], "null", executeTemplate, [])
-go1 = Event("go1", 720, 720, ["p3"], "l2", goTemplate, [])
-go2 = Event("go2", 840, 840, ["p4"], "l2", goTemplate, [])
+e1 = Event("e1", 540, 600, ["p1", "p2"], "l2", executeTemplate, [], False, False)
+e2 = Event("e2", 2160, 2220, ["p1", "p2", "p3", "p4"], "l3", executeTemplate, ["believes(b1,p2,true)", "goal(g1,p2,true)"], False, False)
+e3 = Event("e3", 2160, 2220, ["p1", "p2", "p3", "p4"], "l4", executeTemplate, ["believes(b2,p3,true)", "goal(g2,p3,true)"], False, False)
+m1 = Event("m1", 2880, 2880, ["Ophelia", "p3"], "null", executeTemplate, [], True, True)
+go1 = Event("go1", 720, 720, ["p3"], "l2", goTemplate, [], False, False)
+go2 = Event("go2", 840, 840, ["p4"], "l2", goTemplate, [], False, False)
 
 events = [e2,e3]
 
 #Priority Queue: Schedule
 defaultSchedule = [e1, go1, go2, m1]
 currentSchedule = defaultSchedule
+currentEvents = []
 
 def AddToSchedule(event, schedule):
     newSchedule = schedule.copy()
@@ -115,10 +119,12 @@ def RemoveFromSchedule(event, schedule):
     newSchedule.remove(event)
     a = cancelTemplate.replace("$name$", event.name)
     AddAction(a)
+    RunGame()
     return newSchedule
 
 #Method: Schedule all available events
 def ScheduleEvents():
+    global currentSchedule
     state = worldState.query("Truth")
     for e in events:
         s = "scheduled($name$,true)".replace("$name$", e.name)
@@ -131,8 +137,10 @@ def ScheduleEvents():
                     sat = False
             if sat:
                 AddAction(scheduleTemplate.replace("$name$", e.name))
-                AddToSchedule(e, currentSchedule)
+                print("got here")
+                currentSchedule = AddToSchedule(e, currentSchedule)
     RunGame()
+    findCurrentEvents()
     return
 
 def ResolveHearsay(char, hearsay):
@@ -160,17 +168,39 @@ def ResolveHearsay(char, hearsay):
 def Wait(endTime):
     global currentSchedule
     global currentTime
+    global currentEvents
     while(len(currentSchedule) > 0):
         next = currentSchedule.pop(0)
         if next.endTime > endTime:
             currentSchedule.insert(0, next)
             break
-        ExecuteEvent(next)
+        cont = ExecuteEvent(next)
+        if not cont:
+            return
     currentTime = endTime
+    findCurrentEvents()
+
+def findCurrentEvents():
+    global currentEvents
+    global currentSchedule
+    currentEvents = []
+    for e in currentSchedule:
+        if e.startTime < currentTime:
+            currentEvents.append(e)
+    for e in currentEvents:
+        if e.interrupt:
+            currentEvents.remove(e)
+            currentSchedule.remove(e)
+            cont = ExecuteEvent(e)
+            return
 
 #Method: Observe
 def Observe(event):
+    global charLoc
+    global currentSchedule
     ret = event.template
+    if ret == goTemplate:
+        charLoc[event.chars[0]] = event.loc
     char_string = ""
     for c in event.chars:
         char_string += c + ","
@@ -180,11 +210,19 @@ def Observe(event):
     ret = ret.replace("$obs$", "Ophelia")
     AddAction(ret)
     RunGame()
+    if event.die:
+        return False
+    currentSchedule = RemoveFromSchedule(event, currentSchedule)
     ScheduleEvents()
+    findCurrentEvents()
+    return True
 
 #Method: Execute Events
 def ExecuteEvent(event):
+    global charLoc
     ret = event.template
+    if ret == goTemplate:
+        charLoc[event.chars[0]] = event.loc
     char_string = ""
     for c in event.chars:
         char_string += c + ","
@@ -194,16 +232,23 @@ def ExecuteEvent(event):
     ret = ret.replace("$obs$", "unit")
     AddAction(ret)
     RunGame()
+    if event.die:
+        Reset()
+        return False
     ScheduleEvents()
+    findCurrentEvents()
+    return True
 
 #Method: Tell Hearsay
 def TellHearsay(char, hearsay):
     backup = action_sequence
-    AddAction(tellTemplate.replace("$player$", "Ophelia").replace("$hearsay$", hearsay).replace("$char$", char).replace("$bool$", "true"))
+    action = tellTemplate.replace("$player$", "Ophelia").replace("$hearsay$", hearsay).replace("$char$", char).replace("$bool$", "true")
+    AddAction(action)
     res = RunGame()
     if res == "ERROR":
         print("This action is not possible at this time.")
-
+        RemoveAction(action)
+        return
     ResolveHearsay(char, hearsay)
 
 #Method: Query
@@ -212,7 +257,9 @@ def Query(name):
 
 #Method: Go
 def Go(loc):
+    global charLoc
     AddAction(goTemplate.replace("$char$", "Ophelia").replace("$loc$", loc))
+    charLoc["Ophelia"] = loc
     RunGame()
 
 
@@ -222,13 +269,20 @@ def Reset():
     global currentTime
     global action_sequence
     global currentLoop
+    global charLoc
+    global currentEvents
+
+    print("You died.")
 
     currentTime = 480
     currentSchedule = defaultSchedule.copy()
     action_sequence = ""
 
+    charLoc = charLocDefault
+    currentEvents = []
+
     for i in worldState.query("Ophelia"):
-        if i.contains("knows"):
+        if "knows" in i:
             h = i.replace("knows)", "").replace(",true)", "")
             AddAction(hearsayTemplate.replace("$player$", "Ophelia").replace("$hearsay$", h))
 
@@ -254,7 +308,7 @@ def TextTimeToInt(time):
         return day
     hour = int(time_list[1])*60
     minute = int(time_list[2])
-    if day+hour+minute > 2880 or day+hour+minute < 0:
+    if day+hour+minute > 5760 or day+hour+minute < 0 or day+hour+minute < currentTime:
         return "Fail"
     return day+hour+minute
 
@@ -278,10 +332,11 @@ def AddAction(action):
     global action_sequence
     action_sequence += action
 
-#Method: reset action queue
-def AddAction(actions):
+#Method: AddAction
+def RemoveAction(action):
     global action_sequence
-    action_sequence = actions
+    print(action_sequence[::-1].replace(action[::-1], "")[::-1])
+    #action_sequence = action_sequence[::-1].replace(action[::-1], "")[::-1]
 
 #Method: RunGame
 def RunGame():
@@ -320,11 +375,15 @@ inp = ""
 while (inp != "quit"):
     print("Current Time: " + IntToTextTime(currentTime))
     print("Current Schedule: " + str(currentSchedule))
+    print("Current Events: " + str(currentEvents))
+    print("Locations: " + str(charLoc))
     print("""Available Actions:
     wait(<day:hour:minute>)
     go(<place>)
     tellHearsay(<character>, <hearsay>)
-    observe(<event>)""")
+    observe(<event>)
+    query(<character (including Ophelia) or "Truth">)
+    quit""")
     inp = input("Next Action: ")
     if inp == "quit":
         break
@@ -341,8 +400,25 @@ while (inp != "quit"):
             print("This is not a valid action")
     elif formatted[0] == "tellHearsay":
         args = formatted[1].split(", ")
+        print(args)
         if len(args) == 2 and args[0] in characters and args[1] in hearsayList:
             TellHearsay(args[0], args[1])
+        else:
+            print("This is not a valid action")
+    elif formatted[0] == "observe":
+        test = False
+        event = ""
+        for e in currentEvents:
+            if formatted[1] == e.name:
+                test = True
+                event = e
+        if test:
+            Observe(e)
+        else:
+            print("This is not a valid action")
+    elif formatted[0] == "query":
+        if formatted[1] in characters or formatted[1] == "Truth":
+            print(worldState.query(formatted[1]))
         else:
             print("This is not a valid action")
     else:
