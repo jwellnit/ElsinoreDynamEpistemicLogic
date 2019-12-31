@@ -5,10 +5,10 @@ import subprocess
 
 #String List: List of Characters
 characters = ["ophelia", "hamlet", "laertes", "polonius", "bernardo", "brit"]
-charLocDefault = {"ophelia":"upper_hall", "hamlet":"upper_hall", "laertes":"grounds_docks", "polonius":"upper_hall", "bernardo":"lower_hall", "brit":"lower_hall"}
-charLoc = charLocDefault
-hearsayList = ["im_in_danger", "brit_is_a_spy", "spy_in_elsinore", "bernardo_summon"]
-locs = ["upper_hall", "lower_hall", "main_hall", "grounds_docks", "courtyard", "library", "null"]
+charLocDefault = {"ophelia":"upperHall", "hamlet":"upperHall", "laertes":"groundsDocks", "polonius":"upperHall", "bernardo":"lowerHall", "brit":"lowerHall"}
+charLoc = charLocDefault.copy()
+hearsayList = ["imInDanger", "britIsASpy", "spyInElsinore", "bernardoSummon"]
+locs = ["upperHall", "lowerHall", "mainHall", "groundsDocks", "courtyard", "library", "null"]
 
 #Class: Event
 class Event:
@@ -65,7 +65,7 @@ class World:
 
 
 executeTemplate = "execute$name$($name$,$chars$$loc$,$obs$)\n"
-goTemplate = "go($char$,$loc$)\n"
+goTemplate = "go($chars$$loc$)\n"
 tellTemplate = "tellHearsay($player$,$char$,$hearsay$)\n"
 beliefTemplate = "updateBeliefO($char$,$belief$,$obs$,$bool$)\n"
 hearsayTemplate = "updateHearsay($player$,$hearsay$,$bool$)\n"
@@ -82,100 +82,102 @@ scheduleTemplate = "schedule$name$($name$)\n"
 #Manual Definitions, events
 
 #events
-polonius_lecture = Event("polonius_lecture", 360, 480, ["ophelia", "polonius", "hamlet"], "upper_hall", executeTemplate, [], True, False)
-castle_briefing = Event("castle_briefing", 570, 690, ["polonius", "bernardo"], "main_hall", executeTemplate, [], False, False)
-laertes_leaves = Event("laertes_leaves", 630, 635, ["laertes", "brit"], "grounds_docks", executeTemplate, [], False, False)
+poloniusLecture = Event("poloniusLecture", 360, 480, ["ophelia", "polonius", "hamlet"], "upperHall", executeTemplate, [], False, False)
+castleBriefing = Event("castleBriefing", 570, 690, ["polonius", "bernardo"], "mainHall", executeTemplate, [], False, False)
+laertesLeaves = Event("laertesLeaves", 630, 635, ["laertes", "brit"], "groundsDocks", executeTemplate, [], False, False)
 murder = Event("murder", 3450, 3480, ["ophelia", "brit"], "null", executeTemplate, [], True, True)
-hamlet_kills_polonius = Event("hamlet_kills_polonius", 2970, 3030, ["hamlet", "polonius"], "upper_hall", executeTemplate, [], False, False)
-laertes_makes_plan = Event("laertes_makes_plan", 510, 730, ["laertes", "bernardo"], "lower_hall", executeTemplate, ["believes(ophelia_in_danger,laertes,true)"], False, False)
-laertes_meets_brit = Event("laertes_meets_brit", 1140, 1260, ["laertes", "brit"], "upper_hall", executeTemplate, ["believes(ophelia_in_danger,laertes,true)", "believes(ophelia_in_danger,bernardo,true)"], False, False)
-laertes_kills_hamlet = Event("laertes_meets_brit", 3300, 3360, ["laertes", "hamlet"], "courtyard", executeTemplate, ["believes(ophelia_in_danger,laertes,true)", "dead(polonius,true)"], False, False)
-laertes_confesses_brit = Event("laertes_confesses_brit", 3300, 3360, ["laertes", "brit"], "library", executeTemplate, ["believes(ophelia_in_danger,laertes,true)", "dead(polonius,true)", "dead(hamlet,true)"], False, False)
-bernardo_interrogates_hamlet = Event("bernardo_interrogates_hamlet", "null", "null", ["bernardo", "hamlet"], "lower_hall", executeTemplate, ["believes(ophelia_in_danger,bernardo,true)", "believes(i_have_been_summoned,hamlet,true)"], False, False)
-bernardo_interrogates_polonius = Event("bernardo_interrogates_polonius", "null", "null", ["bernardo", "polonius"], "lower_hall", executeTemplate, ["believes(ophelia_in_danger,bernardo,true)", "believes(i_have_been_summoned,polonius,true)"], False, False)
-bernardo_interrogates_brit = Event("bernardo_interrogates_brit", "null", "null", ["bernardo", "brit"], "lower_hall", executeTemplate, ["believes(ophelia_in_danger,bernardo,true)", "believes(i_have_been_summoned,brit,true)"], False, False)
-brit_meets_fortinbras_2 = Event("brit_meets_fortinbras", 3060, 3120, ["brit"], "grounds_docks", executeTemplate, ["believes(brit_meets_at_docks,ophelia,true)"], False, False)
-brit_meets_fortinbras_1 = Event("brit_meets_fortinbras", 1620, 1680, ["brit"], "grounds_docks", executeTemplate, ["believes(brit_meets_at_docks,ophelia,true)"], False, False)
-bernardo_confronts_brit = Event("bernardo_confronts_brit", "null", "null", ["bernardo", "brit"], "lower_hall", executeTemplate, ["believes(brit_is_a_spy,bernardo,true)"], False, False)
-laertes_confronts_brit = Event("bernardo_confronts_brit", "null", "null", ["laertes", "brit", "bernardo"], "upper_hall", executeTemplate, ["believes(brit_is_a_spy,laertes,true)"], False, False)
+hamletKillsPolonius = Event("hamletKillsPolonius", 2970, 3030, ["hamlet", "polonius"], "upperHall", executeTemplate, [], False, False)
+laertesMakesPlan = Event("laertesMakesPlan", 510, 630, ["laertes", "bernardo"], "lowerHall", executeTemplate, ["believes(opheliaInDanger,laertes,true)"], False, False)
+laertesMeetsBrit = Event("laertesMeetsBrit", 1140, 1260, ["laertes", "brit"], "upperHall", executeTemplate, ["believes(opheliaInDanger,laertes,true)", "believes(opheliaInDanger,bernardo,true)"], False, False)
+laertesKillsHamlet = Event("laertesKillsHamlet", 3300, 3330, ["laertes", "hamlet"], "courtyard", executeTemplate, ["believes(opheliaInDanger,laertes,true)", "dead(polonius,true)"], False, False)
+laertesConfessesBrit = Event("laertesConfessesBrit", 3331, 3360, ["laertes", "brit"], "library", executeTemplate, ["believes(opheliaInDanger,laertes,true)", "dead(polonius,true)", "dead(hamlet,true)"], False, False)
+bernardoInterrogatesHamlet = Event("bernardoInterrogatesHamlet", "null", "null", ["bernardo", "hamlet"], "lowerHall", executeTemplate, ["believes(opheliaInDanger,bernardo,true)", "believes(iHaveBeenSummoned,hamlet,true)"], False, False)
+bernardoInterrogatesPolonius = Event("bernardoInterrogatesPolonius", "null", "null", ["bernardo", "polonius"], "lowerHall", executeTemplate, ["believes(opheliaInDanger,bernardo,true)", "believes(iHaveBeenSummoned,polonius,true)"], False, False)
+bernardoInterrogatesBrit = Event("bernardoInterrogatesBrit", "null", "null", ["bernardo", "brit"], "lowerHall", executeTemplate, ["believes(opheliaInDanger,bernardo,true)", "believes(iHaveBeenSummoned,brit,true)"], False, False)
+britMeetsFortinbras_2 = Event("britMeetsFortinbras", 3060, 3120, ["brit"], "groundsDocks", executeTemplate, ["believes(britMeetsAtDocks,ophelia,true)"], False, False)
+britMeetsFortinbras_1 = Event("britMeetsFortinbras", 1620, 1680, ["brit"], "groundsDocks", executeTemplate, ["believes(britMeetsAtDocks,ophelia,true)"], False, False)
+bernardoConfrontsBrit = Event("bernardoConfrontsBrit", "null", "null", ["bernardo", "brit"], "lowerHall", executeTemplate, ["believes(britIsASpy,bernardo,true)"], False, False)
+laertesConfrontsBrit = Event("bernardoConfrontsBrit", "null", "null", ["laertes", "brit", "bernardo"], "upperHall", executeTemplate, ["believes(britIsASpy,laertes,true)"], False, False)
 
 #schedules
 #hamlet
-hamlet_go_1 = Event("hamlet_go_1", 510, 510, ["hamlet"], "courtyard", goTemplate, [], False, False)
-hamlet_go_2 = Event("hamlet_go_2", 690, 690, ["hamlet"], "upper_hall", goTemplate, [], False, False)
-hamlet_go_3 = Event("hamlet_go_3", 720, 720, ["hamlet"], "library", goTemplate, [], False, False)
-hamlet_go_4 = Event("hamlet_go_4", 810, 810, ["hamlet"], "courtyard", goTemplate, [], False, False)
-hamlet_go_5 = Event("hamlet_go_5", 930, 930, ["hamlet"], "grounds_docks", goTemplate, [], False, False)
-hamlet_go_6 = Event("hamlet_go_6", 990, 990, ["hamlet"], "main_hall", goTemplate, [], False, False)
-hamlet_go_7 = Event("hamlet_go_7", 1170, 1170, ["hamlet"], "upper_hall", goTemplate, [], False, False)
-hamlet_go_8 = Event("hamlet_go_8", 1920, 1920, ["hamlet"], "grounds_docks", goTemplate, [], False, False)
-hamlet_go_9 = Event("hamlet_go_9", 2100, 2100, ["hamlet"], "upper_hall", goTemplate, [], False, False)
-hamlet_go_10 = Event("hamlet_go_10", 2220, 2220, ["hamlet"], "lower_hall", goTemplate, [], False, False)
-hamlet_go_11 = Event("hamlet_go_11", 2310, 2310, ["hamlet"], "upper_hall", goTemplate, [], False, False)
-hamlet_go_12 = Event("hamlet_go_12", 2370, 2370, ["hamlet"], "main_hall", goTemplate, [], False, False)
-hamlet_go_13 = Event("hamlet_go_13", 2610, 2610, ["hamlet"], "lower_hall", goTemplate, [], False, False)
-hamlet_go_14 = Event("hamlet_go_14", 2760, 2760, ["hamlet"], "grounds_docks", goTemplate, [], False, False)
-hamlet_go_15 = Event("hamlet_go_15", 2910, 2910, ["hamlet"], "upper_hall", goTemplate, [], False, False)
-hamlet_go_16 = Event("hamlet_go_16", 3060, 3060, ["hamlet"], "upper_hall", goTemplate, [], False, False)
-hamlet_go_17 = Event("hamlet_go_17", 3450, 3450, ["hamlet"], "grounds_docks", goTemplate, [], False, False)
+hamletGo1 = Event("hamletGo1", 510, 510, ["hamlet"], "courtyard", goTemplate, [], False, False)
+hamletGo2 = Event("hamletGo2", 690, 690, ["hamlet"], "upperHall", goTemplate, [], False, False)
+hamletGo3 = Event("hamletGo3", 720, 720, ["hamlet"], "library", goTemplate, [], False, False)
+hamletGo4 = Event("hamletGo4", 810, 810, ["hamlet"], "courtyard", goTemplate, [], False, False)
+hamletGo5 = Event("hamletGo5", 930, 930, ["hamlet"], "groundsDocks", goTemplate, [], False, False)
+hamletGo6 = Event("hamletGo6", 990, 990, ["hamlet"], "mainHall", goTemplate, [], False, False)
+hamletGo7 = Event("hamletGo7", 1170, 1170, ["hamlet"], "upperHall", goTemplate, [], False, False)
+hamletGo8 = Event("hamletGo8", 1920, 1920, ["hamlet"], "groundsDocks", goTemplate, [], False, False)
+hamletGo9 = Event("hamletGo9", 2100, 2100, ["hamlet"], "upperHall", goTemplate, [], False, False)
+hamletGo10 = Event("hamletGo10", 2220, 2220, ["hamlet"], "lowerHall", goTemplate, [], False, False)
+hamletGo11 = Event("hamletGo11", 2310, 2310, ["hamlet"], "upperHall", goTemplate, [], False, False)
+hamletGo12 = Event("hamletGo12", 2370, 2370, ["hamlet"], "mainHall", goTemplate, [], False, False)
+hamletGo13 = Event("hamletGo13", 2610, 2610, ["hamlet"], "lowerHall", goTemplate, [], False, False)
+hamletGo14 = Event("hamletGo14", 2760, 2760, ["hamlet"], "groundsDocks", goTemplate, [], False, False)
+hamletGo15 = Event("hamletGo15", 2910, 2910, ["hamlet"], "upperHall", goTemplate, [], False, False)
+hamletGo16 = Event("hamletGo16", 3060, 3060, ["hamlet"], "upperHall", goTemplate, [], False, False)
+hamletGo17 = Event("hamletGo17", 3450, 3450, ["hamlet"], "groundsDocks", goTemplate, [], False, False)
 
 #polonius
-polonius_go_1 = Event("polonius_go_1", 690, 690, ["polonius"], "library", goTemplate, [], False, False)
-polonius_go_2 = Event("polonius_go_2", 810, 810, ["polonius"], "upper_hall", goTemplate, [], False, False)
-polonius_go_3 = Event("polonius_go_3", 1020, 1020, ["polonius"], "main_hall", goTemplate, [], False, False)
-polonius_go_4 = Event("polonius_go_4", 1170, 1170, ["polonius"], "grounds_docks", goTemplate, [], False, False)
-polonius_go_5 = Event("polonius_go_5", 1470, 1470, ["polonius"], "upper_hall", goTemplate, [], False, False)
-polonius_go_6 = Event("polonius_go_6", 2070, 2070, ["polonius"], "main_hall", goTemplate, [], False, False)
-polonius_go_7 = Event("polonius_go_7", 2130, 2130, ["polonius"], "upper_hall", goTemplate, [], False, False)
-polonius_go_8 = Event("polonius_go_8", 2370, 2370, ["polonius"], "main_hall", goTemplate, [], False, False)
-polonius_go_9 = Event("polonius_go_9", 2610, 2160, ["polonius"], "upper_hall", goTemplate, [], False, False)
+poloniusGo1 = Event("poloniusGo1", 690, 690, ["polonius"], "library", goTemplate, [], False, False)
+poloniusGo2 = Event("poloniusGo2", 810, 810, ["polonius"], "upperHall", goTemplate, [], False, False)
+poloniusGo3 = Event("poloniusGo3", 1020, 1020, ["polonius"], "mainHall", goTemplate, [], False, False)
+poloniusGo4 = Event("poloniusGo4", 1170, 1170, ["polonius"], "groundsDocks", goTemplate, [], False, False)
+poloniusGo5 = Event("poloniusGo5", 1470, 1470, ["polonius"], "upperHall", goTemplate, [], False, False)
+poloniusGo6 = Event("poloniusGo6", 2070, 2070, ["polonius"], "mainHall", goTemplate, [], False, False)
+poloniusGo7 = Event("poloniusGo7", 2130, 2130, ["polonius"], "upperHall", goTemplate, [], False, False)
+poloniusGo8 = Event("poloniusGo8", 2370, 2370, ["polonius"], "mainHall", goTemplate, [], False, False)
+poloniusGo9 = Event("poloniusGo9", 2610, 2160, ["polonius"], "upperHall", goTemplate, [], False, False)
 
 #laertes
-laertes_go_1 = Event("laertes_go_1", 630, 630, ["laertes"], "courtyard", goTemplate, [], False, False)
-laertes_go_2 = Event("laertes_go_2", 1020, 1020, ["laertes"], "main_hall", goTemplate, [], False, False)
-laertes_go_3 = Event("laertes_go_3", 1260, 1260, ["laertes"], "courtyard", goTemplate, [], False, False)
-laertes_go_4 = Event("laertes_go_4", 1380, 1380, ["laertes"], "upper_hall", goTemplate, [], False, False)
-laertes_go_5 = Event("laertes_go_5", 1800, 1800, ["laertes"], "courtyard", goTemplate, [], False, False)
-laertes_go_6 = Event("laertes_go_6", 2370, 2370, ["laertes"], "main_hall", goTemplate, [], False, False)
-laertes_go_7 = Event("laertes_go_7", 2610, 2610, ["laertes"], "courtyard", goTemplate, [], False, False)
-laertes_go_8 = Event("laertes_go_8", 2790, 2790, ["laertes"], "upper_hall", goTemplate, [], False, False)
-laertes_go_9 = Event("laertes_go_9", 3240, 3240, ["laertes"], "courtyard", goTemplate, [], False, False)
+laertesGo1 = Event("laertesGo1", 630, 630, ["laertes"], "courtyard", goTemplate, [], False, False)
+laertesGo2 = Event("laertesGo2", 1020, 1020, ["laertes"], "mainHall", goTemplate, [], False, False)
+laertesGo3 = Event("laertesGo3", 1260, 1260, ["laertes"], "courtyard", goTemplate, [], False, False)
+laertesGo4 = Event("laertesGo4", 1380, 1380, ["laertes"], "upperHall", goTemplate, [], False, False)
+laertesGo5 = Event("laertesGo5", 1800, 1800, ["laertes"], "courtyard", goTemplate, [], False, False)
+laertesGo6 = Event("laertesGo6", 2370, 2370, ["laertes"], "mainHall", goTemplate, [], False, False)
+laertesGo7 = Event("laertesGo7", 2610, 2610, ["laertes"], "courtyard", goTemplate, [], False, False)
+laertesGo8 = Event("laertesGo8", 2790, 2790, ["laertes"], "upperHall", goTemplate, [], False, False)
+laertesGo9 = Event("laertesGo9", 3240, 3240, ["laertes"], "courtyard", goTemplate, [], False, False)
 
 #bernardo
-bernardo_go_1 = Event("bernardo_go_1", 960, 960, ["bernardo"], "courtyard", goTemplate, [], False, False)
-bernardo_go_2 = Event("bernardo_go_2", 1020, 1020, ["bernardo"], "main_hall", goTemplate, [], False, False)
-bernardo_go_3 = Event("bernardo_go_3", 1080, 1080, ["bernardo"], "courtyard", goTemplate, [], False, False)
-bernardo_go_4 = Event("bernardo_go_4", 1170, 1170, ["bernardo"], "lower_hall", goTemplate, [], False, False)
-bernardo_busy = Event("bernardo_busy", 1500, 1500, ["bernardo"], "lower_hall", executeTemplate, [], False, False)
-bernardo_not_busy = Event("bernardo_busy", 1770, 1770, ["bernardo"], "lower_hall", executeTemplate, [], False, False)
-bernardo_go_5 = Event("bernardo_go_5", 2370, 2370, ["bernardo"], "main_hall", goTemplate, [], False, False)
-bernardo_go_6 = Event("bernardo_go_6", 2610, 2610, ["bernardo"], "courtyard", goTemplate, [], False, False)
-bernardo_go_7 = Event("bernardo_go_7", 3000, 3000, ["bernardo"], "lower_hall", goTemplate, [], False, False)
-bernardo_go_8 = Event("bernardo_go_8", 3360, 3360, ["bernardo"], "main_hall", goTemplate, [], False, False)
-bernardo_go_9 = Event("bernardo_go_9", 3480, 3480, ["bernardo"], "lower_hall", goTemplate, [], False, False)
+bernardoGo1 = Event("bernardoGo1", 960, 960, ["bernardo"], "courtyard", goTemplate, [], False, False)
+bernardoGo2 = Event("bernardoGo2", 1020, 1020, ["bernardo"], "mainHall", goTemplate, [], False, False)
+bernardoGo3 = Event("bernardoGo3", 1080, 1080, ["bernardo"], "courtyard", goTemplate, [], False, False)
+bernardoGo4 = Event("bernardoGo4", 1170, 1170, ["bernardo"], "lowerHall", goTemplate, [], False, False)
+bernardoBusy = Event("bernardoBusy", 1500, 1500, ["bernardo"], "lowerHall", executeTemplate, [], False, False)
+bernardoNotBusy = Event("bernardoNotBusy", 1770, 1770, ["bernardo"], "lowerHall", executeTemplate, [], False, False)
+bernardoGo5 = Event("bernardoGo5", 2370, 2370, ["bernardo"], "mainHall", goTemplate, [], False, False)
+bernardoGo6 = Event("bernardoGo6", 2610, 2610, ["bernardo"], "courtyard", goTemplate, [], False, False)
+bernardoGo7 = Event("bernardoGo7", 3000, 3000, ["bernardo"], "lowerHall", goTemplate, [], False, False)
+bernardoGo8 = Event("bernardoGo8", 3360, 3360, ["bernardo"], "mainHall", goTemplate, [], False, False)
+bernardoGo9 = Event("bernardoGo9", 3480, 3480, ["bernardo"], "lowerHall", goTemplate, [], False, False)
 
 #brit
-brit_go_1 = Event("brit_go_1", 690, 690, ["brit"], "lower_hall", goTemplate, [], False, False)
-brit_go_2 = Event("brit_go_2", 870, 870, ["brit"], "upper_hall", goTemplate, [], False, False)
-brit_go_3 = Event("brit_go_3", 1050, 1050, ["brit"], "main_hall", goTemplate, [], False, False)
-brit_go_4 = Event("brit_go_4", 1170, 1170, ["brit"], "lower_hall", goTemplate, [], False, False)
-brit_go_5 = Event("brit_go_5", 1380, 1380, ["brit"], "library", goTemplate, [], False, False)
-brit_go_6 = Event("brit_go_6", 1440, 1440, ["brit"], "lower_hall", goTemplate, [], False, False)
-brit_go_7 = Event("brit_go_7", 1620, 1620, ["brit"], "grounds_docks", goTemplate, [], False, False)
-brit_go_8 = Event("brit_go_8", 1710, 1710, ["brit"], "lower_hall", goTemplate, [], False, False)
-brit_go_9 = Event("brit_go_9", 2310, 2310, ["brit"], "upper_hall", goTemplate, [], False, False)
-brit_go_10 = Event("brit_go_10", 2370, 2370, ["brit"], "main_hall", goTemplate, [], False, False)
-brit_go_11 = Event("brit_go_11", 2610, 2610, ["brit"], "lower_hall", goTemplate, [], False, False)
-brit_go_12 = Event("brit_go_12", 2820, 2820, ["brit"], "library", goTemplate, [], False, False)
-brit_go_13 = Event("brit_go_13", 2880, 2880, ["brit"], "lower_hall", goTemplate, [], False, False)
-brit_go_14 = Event("brit_go_14", 3060, 3060, ["brit"], "grounds_docks", goTemplate, [], False, False)
-brit_go_15 = Event("brit_go_15", 3150, 3150, ["brit"], "lower_hall", goTemplate, [], False, False)
+britGo1 = Event("britGo1", 690, 690, ["brit"], "lowerHall", goTemplate, [], False, False)
+britGo2 = Event("britGo2", 870, 870, ["brit"], "upperHall", goTemplate, [], False, False)
+britGo3 = Event("britGo3", 1050, 1050, ["brit"], "mainHall", goTemplate, [], False, False)
+britGo4 = Event("britGo4", 1170, 1170, ["brit"], "lowerHall", goTemplate, [], False, False)
+britGo5 = Event("britGo5", 1380, 1380, ["brit"], "library", goTemplate, [], False, False)
+britGo6 = Event("britGo6", 1440, 1440, ["brit"], "lowerHall", goTemplate, [], False, False)
+britGo7 = Event("britGo7", 1620, 1620, ["brit"], "groundsDocks", goTemplate, [], False, False)
+britGo8 = Event("britGo8", 1710, 1710, ["brit"], "lowerHall", goTemplate, [], False, False)
+britGo9 = Event("britGo9", 2310, 2310, ["brit"], "upperHall", goTemplate, [], False, False)
+britGo10 = Event("britGo10", 2370, 2370, ["brit"], "mainHall", goTemplate, [], False, False)
+britGo11 = Event("britGo11", 2610, 2610, ["brit"], "lowerHall", goTemplate, [], False, False)
+britGo12 = Event("britGo12", 2820, 2820, ["brit"], "library", goTemplate, [], False, False)
+britGo13 = Event("britGo13", 2880, 2880, ["brit"], "lowerHall", goTemplate, [], False, False)
+britGo14 = Event("britGo14", 3060, 3060, ["brit"], "groundsDocks", goTemplate, [], False, False)
+britGo15 = Event("britGo15", 3150, 3150, ["brit"], "lowerHall", goTemplate, [], False, False)
 
-events = [polonius_lecture,castle_briefing,laertes_leaves,murder,hamlet_kills_polonius,laertes_makes_plan,laertes_meets_brit,laertes_kills_hamlet,laertes_confesses_brit,bernardo_interrogates_hamlet,bernardo_interrogates_polonius,bernardo_interrogates_brit,brit_meets_fortinbras_2,brit_meets_fortinbras_1,bernardo_confronts_brit,laertes_confronts_brit]
+events = [laertesMakesPlan,laertesMeetsBrit,laertesKillsHamlet,laertesConfessesBrit,bernardoInterrogatesHamlet,bernardoInterrogatesPolonius,bernardoInterrogatesBrit,britMeetsFortinbras_2,britMeetsFortinbras_1,bernardoConfrontsBrit,laertesConfrontsBrit]
+cancelevents = [poloniusLecture,castleBriefing,laertesLeaves,murder,hamletKillsPolonius,laertesMakesPlan,laertesMeetsBrit,laertesKillsHamlet,laertesConfessesBrit,bernardoInterrogatesHamlet,bernardoInterrogatesPolonius,bernardoInterrogatesBrit,britMeetsFortinbras_2,britMeetsFortinbras_1,bernardoConfrontsBrit,laertesConfrontsBrit]
+
 
 #Priority Queue: Schedule
-defaultSchedule = [polonius_lecture,castle_briefing,laertes_leaves,hamlet_kills_polonius,murder]
-currentSchedule = defaultSchedule
+defaultSchedule = [poloniusLecture,castleBriefing,laertesLeaves,hamletKillsPolonius,murder]
+
 currentEvents = []
 
 ostari_path = sys.argv[1]
@@ -247,75 +249,77 @@ def AddToSchedule(event, schedule):
 
 #add to movement to schedule
 #hamlet
-currentSchedule = AddToSchedule(hamlet_go_1, currentSchedule)
-currentSchedule = AddToSchedule(hamlet_go_2, currentSchedule)
-currentSchedule = AddToSchedule(hamlet_go_3, currentSchedule)
-currentSchedule = AddToSchedule(hamlet_go_4, currentSchedule)
-currentSchedule = AddToSchedule(hamlet_go_5, currentSchedule)
-currentSchedule = AddToSchedule(hamlet_go_6, currentSchedule)
-currentSchedule = AddToSchedule(hamlet_go_7, currentSchedule)
-currentSchedule = AddToSchedule(hamlet_go_8, currentSchedule)
-currentSchedule = AddToSchedule(hamlet_go_9, currentSchedule)
-currentSchedule = AddToSchedule(hamlet_go_10, currentSchedule)
-currentSchedule = AddToSchedule(hamlet_go_11, currentSchedule)
-currentSchedule = AddToSchedule(hamlet_go_12, currentSchedule)
-currentSchedule = AddToSchedule(hamlet_go_13, currentSchedule)
-currentSchedule = AddToSchedule(hamlet_go_14, currentSchedule)
-currentSchedule = AddToSchedule(hamlet_go_15, currentSchedule)
-currentSchedule = AddToSchedule(hamlet_go_16, currentSchedule)
-currentSchedule = AddToSchedule(hamlet_go_17, currentSchedule)
+defaultSchedule = AddToSchedule(hamletGo1, defaultSchedule)
+defaultSchedule = AddToSchedule(hamletGo2, defaultSchedule)
+defaultSchedule = AddToSchedule(hamletGo3, defaultSchedule)
+defaultSchedule = AddToSchedule(hamletGo4, defaultSchedule)
+defaultSchedule = AddToSchedule(hamletGo5, defaultSchedule)
+defaultSchedule = AddToSchedule(hamletGo6, defaultSchedule)
+defaultSchedule = AddToSchedule(hamletGo7, defaultSchedule)
+defaultSchedule = AddToSchedule(hamletGo8, defaultSchedule)
+defaultSchedule = AddToSchedule(hamletGo9, defaultSchedule)
+defaultSchedule = AddToSchedule(hamletGo10, defaultSchedule)
+defaultSchedule = AddToSchedule(hamletGo11, defaultSchedule)
+defaultSchedule = AddToSchedule(hamletGo12, defaultSchedule)
+defaultSchedule = AddToSchedule(hamletGo13, defaultSchedule)
+defaultSchedule = AddToSchedule(hamletGo14, defaultSchedule)
+defaultSchedule = AddToSchedule(hamletGo15, defaultSchedule)
+defaultSchedule = AddToSchedule(hamletGo16, defaultSchedule)
+defaultSchedule = AddToSchedule(hamletGo17, defaultSchedule)
 
 #polonius
-currentSchedule = AddToSchedule(polonius_go_1, currentSchedule)
-currentSchedule = AddToSchedule(polonius_go_2, currentSchedule)
-currentSchedule = AddToSchedule(polonius_go_3, currentSchedule)
-currentSchedule = AddToSchedule(polonius_go_4, currentSchedule)
-currentSchedule = AddToSchedule(polonius_go_5, currentSchedule)
-currentSchedule = AddToSchedule(polonius_go_6, currentSchedule)
-currentSchedule = AddToSchedule(polonius_go_7, currentSchedule)
-currentSchedule = AddToSchedule(polonius_go_8, currentSchedule)
-currentSchedule = AddToSchedule(polonius_go_9, currentSchedule)
+defaultSchedule = AddToSchedule(poloniusGo1, defaultSchedule)
+defaultSchedule = AddToSchedule(poloniusGo2, defaultSchedule)
+defaultSchedule = AddToSchedule(poloniusGo3, defaultSchedule)
+defaultSchedule = AddToSchedule(poloniusGo4, defaultSchedule)
+defaultSchedule = AddToSchedule(poloniusGo5, defaultSchedule)
+defaultSchedule = AddToSchedule(poloniusGo6, defaultSchedule)
+defaultSchedule = AddToSchedule(poloniusGo7, defaultSchedule)
+defaultSchedule = AddToSchedule(poloniusGo8, defaultSchedule)
+defaultSchedule = AddToSchedule(poloniusGo9, defaultSchedule)
 
 #laertes
-currentSchedule = AddToSchedule(laertes_go_1, currentSchedule)
-currentSchedule = AddToSchedule(laertes_go_2, currentSchedule)
-currentSchedule = AddToSchedule(laertes_go_3, currentSchedule)
-currentSchedule = AddToSchedule(laertes_go_4, currentSchedule)
-currentSchedule = AddToSchedule(laertes_go_5, currentSchedule)
-currentSchedule = AddToSchedule(laertes_go_6, currentSchedule)
-currentSchedule = AddToSchedule(laertes_go_7, currentSchedule)
-currentSchedule = AddToSchedule(laertes_go_8, currentSchedule)
-currentSchedule = AddToSchedule(laertes_go_9, currentSchedule)
+defaultSchedule = AddToSchedule(laertesGo1, defaultSchedule)
+defaultSchedule = AddToSchedule(laertesGo2, defaultSchedule)
+defaultSchedule = AddToSchedule(laertesGo3, defaultSchedule)
+defaultSchedule = AddToSchedule(laertesGo4, defaultSchedule)
+defaultSchedule = AddToSchedule(laertesGo5, defaultSchedule)
+defaultSchedule = AddToSchedule(laertesGo6, defaultSchedule)
+defaultSchedule = AddToSchedule(laertesGo7, defaultSchedule)
+defaultSchedule = AddToSchedule(laertesGo8, defaultSchedule)
+defaultSchedule = AddToSchedule(laertesGo9, defaultSchedule)
 
 #bernardo
-currentSchedule = AddToSchedule(bernardo_go_1, currentSchedule)
-currentSchedule = AddToSchedule(bernardo_go_2, currentSchedule)
-currentSchedule = AddToSchedule(bernardo_go_3, currentSchedule)
-currentSchedule = AddToSchedule(bernardo_go_4, currentSchedule)
-currentSchedule = AddToSchedule(bernardo_busy, currentSchedule)
-currentSchedule = AddToSchedule(bernardo_not_busy, currentSchedule)
-currentSchedule = AddToSchedule(bernardo_go_5, currentSchedule)
-currentSchedule = AddToSchedule(bernardo_go_6, currentSchedule)
-currentSchedule = AddToSchedule(bernardo_go_7, currentSchedule)
-currentSchedule = AddToSchedule(bernardo_go_8, currentSchedule)
-currentSchedule = AddToSchedule(bernardo_go_9, currentSchedule)
+defaultSchedule = AddToSchedule(bernardoGo1, defaultSchedule)
+defaultSchedule = AddToSchedule(bernardoGo2, defaultSchedule)
+defaultSchedule = AddToSchedule(bernardoGo3, defaultSchedule)
+defaultSchedule = AddToSchedule(bernardoGo4, defaultSchedule)
+defaultSchedule = AddToSchedule(bernardoBusy, defaultSchedule)
+defaultSchedule = AddToSchedule(bernardoNotBusy, defaultSchedule)
+defaultSchedule = AddToSchedule(bernardoGo5, defaultSchedule)
+defaultSchedule = AddToSchedule(bernardoGo6, defaultSchedule)
+defaultSchedule = AddToSchedule(bernardoGo7, defaultSchedule)
+defaultSchedule = AddToSchedule(bernardoGo8, defaultSchedule)
+defaultSchedule = AddToSchedule(bernardoGo9, defaultSchedule)
 
 #brit
-currentSchedule = AddToSchedule(brit_go_1, currentSchedule)
-currentSchedule = AddToSchedule(brit_go_2, currentSchedule)
-currentSchedule = AddToSchedule(brit_go_3, currentSchedule)
-currentSchedule = AddToSchedule(brit_go_4, currentSchedule)
-currentSchedule = AddToSchedule(brit_go_5, currentSchedule)
-currentSchedule = AddToSchedule(brit_go_6, currentSchedule)
-currentSchedule = AddToSchedule(brit_go_7, currentSchedule)
-currentSchedule = AddToSchedule(brit_go_8, currentSchedule)
-currentSchedule = AddToSchedule(brit_go_9, currentSchedule)
-currentSchedule = AddToSchedule(brit_go_10, currentSchedule)
-currentSchedule = AddToSchedule(brit_go_11, currentSchedule)
-currentSchedule = AddToSchedule(brit_go_12, currentSchedule)
-currentSchedule = AddToSchedule(brit_go_13, currentSchedule)
-currentSchedule = AddToSchedule(brit_go_14, currentSchedule)
-currentSchedule = AddToSchedule(brit_go_15, currentSchedule)
+defaultSchedule = AddToSchedule(britGo1, defaultSchedule)
+defaultSchedule = AddToSchedule(britGo2, defaultSchedule)
+defaultSchedule = AddToSchedule(britGo3, defaultSchedule)
+defaultSchedule = AddToSchedule(britGo4, defaultSchedule)
+defaultSchedule = AddToSchedule(britGo5, defaultSchedule)
+defaultSchedule = AddToSchedule(britGo6, defaultSchedule)
+defaultSchedule = AddToSchedule(britGo7, defaultSchedule)
+defaultSchedule = AddToSchedule(britGo8, defaultSchedule)
+defaultSchedule = AddToSchedule(britGo9, defaultSchedule)
+defaultSchedule = AddToSchedule(britGo10, defaultSchedule)
+defaultSchedule = AddToSchedule(britGo11, defaultSchedule)
+defaultSchedule = AddToSchedule(britGo12, defaultSchedule)
+defaultSchedule = AddToSchedule(britGo13, defaultSchedule)
+defaultSchedule = AddToSchedule(britGo14, defaultSchedule)
+defaultSchedule = AddToSchedule(britGo15, defaultSchedule)
+
+currentSchedule = defaultSchedule.copy()
 
 def RemoveFromSchedule(event, schedule):
     newSchedule = schedule.copy()
@@ -331,17 +335,20 @@ def ScheduleEvents():
         s = "scheduled($name$,true)".replace("$name$", e.name)
         i = "impossible($name$,true)".replace("$name$", e.name)
         c = "completed($name$,true)".replace("$name$", e.name)
-        if (not s in state) and (not i in state) and (not c in state) and e.startTime > currentTime:
+        if (not s in state) and (not i in state) and (not c in state) and (e.startTime == "null" or e.startTime > currentTime):
             sat = True
             for p in e.preconditions:
                 if not p in state:
                     sat = False
             if sat:
                 AddAction(scheduleTemplate.replace("$name$", e.name))
-                print("got here")
                 currentSchedule = AddToSchedule(e, currentSchedule)
+    for e in cancelevents:
+        s = "scheduled($name$,true)".replace("$name$", e.name)
+        i = "impossible($name$,true)".replace("$name$", e.name)
+        c = "completed($name$,true)".replace("$name$", e.name)
         if (e in currentSchedule) and (i in state):
-            RemoveFromSchedule(e)
+            currentSchedule = RemoveFromSchedule(e, currentSchedule)
     RunGame()
     findCurrentEvents()
     return
@@ -416,7 +423,7 @@ def Observe(event):
     ret = ret.replace("$name$", event.name)
     ret = ret.replace("$chars$", char_string)
     ret = ret.replace("$loc$", event.loc)
-    ret = ret.replace("$obs$", "Ophelia")
+    ret = ret.replace("$obs$", "ophelia")
     AddAction(ret)
     RunGame()
     if event.die:
@@ -428,6 +435,7 @@ def Observe(event):
 
 #Method: Execute Events
 def ExecuteEvent(event):
+    print(event.name)
     global charLoc
     ret = event.template
     if ret == goTemplate:
@@ -451,7 +459,7 @@ def ExecuteEvent(event):
 #Method: Tell Hearsay
 def TellHearsay(char, hearsay):
     backup = action_sequence
-    action = tellTemplate.replace("$player$", "Ophelia").replace("$hearsay$", hearsay).replace("$char$", char).replace("$bool$", "true")
+    action = tellTemplate.replace("$player$", "ophelia").replace("$hearsay$", hearsay).replace("$char$", char).replace("$bool$", "true")
     AddAction(action)
     res = RunGame()
     if res == "ERROR":
@@ -467,8 +475,8 @@ def Query(name):
 #Method: Go
 def Go(loc):
     global charLoc
-    AddAction(goTemplate.replace("$char$", "Ophelia").replace("$loc$", loc))
-    charLoc["Ophelia"] = loc
+    AddAction(goTemplate.replace("$chars$", "ophelia,").replace("$loc$", loc))
+    charLoc["ophelia"] = loc
     RunGame()
 
 
@@ -487,28 +495,28 @@ def Reset():
     currentSchedule = defaultSchedule.copy()
     action_sequence = ""
 
-    charLoc = charLocDefault
+    charLoc = charLocDefault.copy()
     currentEvents = []
 
-    for i in worldState.query("Ophelia"):
+    for i in worldState.query("ophelia"):
         if "knows" in i:
-            h = i.replace("knows)", "").replace(",true)", "")
-            AddAction(hearsayTemplate.replace("$player$", "Ophelia").replace("$hearsay$", h))
+            h = i.replace("knows(", "").replace(",true)", "")
+            AddAction(hearsayTemplate.replace("$player$", "ophelia").replace("$hearsay$", h).replace("$bool$", "true"))
 
     currentLoop += 1
     RunGame()
 
 #Hash: player/hearsay -> belief/goal
 result = {
-"laertes:im_in_danger" : [("cancel", "laertes_leaves"), ("belief", "ophelia_in_danger")],
-"laertes:brit_is_a_spy" : [("belief", "brit_is_a_spy")],
-"bernardo:im_in_danger" : [("belief", "ophelia_in_danger")],
-"bernardo:spy_in_elsinore" : [("belief", "ophelia_in_danger")],
-"bernardo:brit_is_a_spy" : [("belief", "brit_is_a_spy")],
-"polonius:bernardo_summon" : [("belief", "i_have_been_summoned")],
-"hamlet:bernardo_summon" : [("belief", "i_have_been_summoned")],
-"hamlet:spy_in_elsinore" : [("belief", "i_have_been_summoned")],
-"brit:bernardo_summon" : [("belief", "i_have_been_summoned")]
+"laertes:imInDanger" : [("cancel", "laertesLeaves"), ("belief", "opheliaInDanger")],
+"laertes:britIsASpy" : [("belief", "britIsASpy")],
+"bernardo:imInDanger" : [("belief", "opheliaInDanger")],
+"bernardo:spyInElsinore" : [("belief", "opheliaInDanger")],
+"bernardo:britIsASpy" : [("belief", "britIsASpy")],
+"polonius:bernardoSummon" : [("belief", "iHaveBeenSummoned")],
+"hamlet:bernardoSummon" : [("belief", "iHaveBeenSummoned")],
+"hamlet:spyInElsinore" : [("belief", "iHaveBeenSummoned")],
+"brit:bernardoSummon" : [("belief", "iHaveBeenSummoned")]
 }
 
 #Value: Time
@@ -547,13 +555,15 @@ while (inp != "quit"):
     print("Current Time: " + IntToTextTime(currentTime))
     print("Current Schedule: " + str(currentSchedule))
     print("Current Events: " + str(currentEvents))
+    print("Your Knowlegde: " + str(worldState.query("ophelia")))
+    print("World State: " + str(worldState.query("Truth")))
     print("Locations: " + str(charLoc))
     print("""Available Actions:
     wait(<day:hour:minute>)
     go(<place>)
     tellHearsay(<character>, <hearsay>)
     observe(<event>)
-    query(<character (including Ophelia) or "Truth">)
+    query(<character (including ophelia) or "Truth">)
     quit""")
     inp = input("Next Action: ")
     if inp == "quit":
