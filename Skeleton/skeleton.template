@@ -1,9 +1,8 @@
 Types:
-Players = Ophelia, p1, p2, p3, p4, unit
-Observers = Ophelia, unit
-Beliefs = b1, b2
-Goals = g1, g2
-Hearsay = h1
+Players = ophelia, hamlet, laertes, polonius, bernardo, brit, unit
+Observers = ophelia, unit
+Beliefs = ophelia_in_danger, brit_meets_at_docks, brit_is_a_spy
+Hearsay = im_in_danger, brit_is_a_spy, spy_in_elsinore, bernardo_summon
 Events = e1, e2, e3, m1
 Bool = true, false
 Unit = unit
@@ -20,6 +19,7 @@ knows :: Hearsay -> Bool ()
 resultsB :: Players -> Hearsay -> Beliefs ()
 resultsG :: Players -> Hearsay -> Beliefs ()
 busy :: Players -> Bool ()
+gone :: Players -> Bool ()
 upset :: Players -> Bool ()
 shattered :: Players -> Bool ()
 scheduled :: Events -> Bool ()

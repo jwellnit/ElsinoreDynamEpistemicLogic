@@ -1,0 +1,304 @@
+Types:
+Players = ophelia, hamlet, laertes, polonius, bernardo, brit, unit
+Observers = ophelia, unit
+Beliefs = ophelia_in_danger, brit_meets_at_docks, brit_is_a_spy, i_have_been_summoned
+Hearsay = im_in_danger, brit_is_a_spy, spy_in_elsinore, bernardo_summon
+Events = polonius_lecture, castle_briefing, laertes_leaves, murder, hamlet_kills_polonius, laertes_makes_plan, laertes_meets_brit, laertes_kills_hamlet, laertes_confesses_brit, bernardo_interrogates_hamlet, bernardo_interrogates_polonius, bernardo_interrogates_brit, brit_meets_fortinbras, bernardo_confronts_brit, laertes_confronts_brit, bernardo_busy, bernardo_not_busy
+Bool = true, false
+Unit = unit
+Loop = first, second, after, reset
+Decisions = yes, no
+Locations = upper_hall, lower_hall, main_hall, grounds_docks, courtyard, library, null
+
+Properties:
+at :: Players -> Locations ()
+dead :: Players -> Bool ()
+believes :: Beliefs -> Players -> Bool ()
+goal :: Goals -> Players -> Bool ()
+knows :: Hearsay -> Bool ()
+busy :: Players -> Bool ()
+gone :: Players -> Bool ()
+upset :: Players -> Bool ()
+shattered :: Players -> Bool ()
+scheduled :: Events -> Bool ()
+completed ::  Events -> Bool ()
+impossible :: Events -> Bool ()
+loop :: Unit -> Loops ()
+
+Actions:
+go(p: Players, l: Locations) {
+at(p) = l
+}
+
+tellHearsay(o: Players, p: Players, h: Hearsay) {
+precondition at(o) == at(p);
+precondition busy(p) != true;
+precondition upset(p) != true;
+precondition shattered(p) != true;
+precondition dead(p) != true;
+precondition gone(p) != true;
+public (p) knows(h) = true
+}
+
+updateBelief(p: Players, b: Beliefs, t: Bool) {
+public (p) believes(b, p) = t
+}
+
+updateGoal(p: Players, g: Goals, t: Bool) {
+public (p) goal(g, p) = t
+}
+
+updateBeliefO(p: Players, b: Beliefs, o: Players, t: Bool) {
+public (p, o) believes(b, p) = t
+}
+
+updateGoalO(p: Players, g: Goals, o: Players, t: Bool) {
+public (p, o) goal(g, p) = t
+}
+
+updateHearsay(p: Players, h: Hearsay, t: Bool) {
+public (p) knows(h) = t
+}
+
+setBusy(p: Players, b: Bool) {
+public (p) busy(p) = b
+}
+
+setUpset(p: Players, b: Bool) {
+public (p) upset(p) = b
+}
+
+setShattered(p: Players, b: Bool) {
+public (p) shattered(p) = b
+}
+
+setDead(p: Players, b: Bool) {
+public (p) dead(p) = b
+}
+
+setGone(p: Players, b: Bool) {
+public (p) gone(p) = b
+}
+
+setBusyO(p: Players, b: Bool, o: Players) {
+public (p, o) busy(p) = b
+}
+
+setUpsetO(p: Players, b: Bool, o: Players) {
+public (p, o) upset(p) = b
+}
+
+setShatteredO(p: Players, b: Bool, o: Players) {
+public (p, o) shattered(p) = b
+}
+
+setDeadO(p: Players, b: Bool, o: Players) {
+public (p, o) gone(p) = b
+}
+
+setGoneO(p: Players, b: Bool, o: Players) {
+public (p, o) dead(p) = b
+}
+
+cancelEvent(e: Events) {
+scheduled(e) = false;
+impossible(e) = true
+}
+
+schedulelaertes_confronts_brit(e: Events) {
+precondition believes(brit_is_a_spy,laertes) == true;
+scheduled(e) = true
+}
+
+schedulebernardo_confronts_brit(e: Events) {
+precondition believes(brit_is_a_spy,bernardo) == true;
+scheduled(e) = true
+}
+
+schedulebrit_meets_fortinbras(e: Events) {
+precondition believes(brit_meets_at_docks,ophelia) == true;
+scheduled(e) = true
+}
+
+schedulebernardo_interrogates_brit(e: Events) {
+precondition believes(i_have_been_summoned,brit) == true;
+precondition believes(ophelia_in_danger,bernardo) == true;
+scheduled(e) = true
+}
+
+schedulebernardo_interrogates_polonius(e: Events) {
+precondition believes(i_have_been_summoned,polonius) == true;
+precondition believes(ophelia_in_danger,bernardo) == true;
+scheduled(e) = true
+}
+
+schedulebernardo_interrogates_hamlet(e: Events) {
+precondition believes(i_have_been_summoned,hamlet) == true;
+precondition believes(ophelia_in_danger,bernardo) == true;
+scheduled(e) = true
+}
+
+schedulelaertes_confesses_brit(e: Events) {
+precondition dead(polonius) == true;
+precondition dead(hamlet) == true;
+precondition believes(ophelia_in_danger,laertes) == true;
+scheduled(e) = true
+}
+
+schedulelaertes_kills_hamlet(e: Events) {
+precondition dead(polonius) == true;
+precondition believes(ophelia_in_danger,laertes) == true;
+scheduled(e) = true
+}
+
+schedulelaertes_meets_brit(e: Events) {
+precondition believes(ophelia_in_danger,laertes) == true;
+precondition believes(ophelia_in_danger,bernardo) == true;
+scheduled(e) = true
+}
+
+schedulelaertes_makes_plan(e: Events) {
+precondition believes(ophelia_in_danger,laertes) == true;
+scheduled(e) = true
+}
+
+executelaertes_confronts_brit(e: Events, c1: Players, c2: Players, c3: Players, l: Locations, o: Observers) {
+at(c1, l);
+at(c2, l);
+at(c3, l);
+public (c2) shattered(c2) = true;
+impossible(murder) = true;
+completed(e) = true;
+scheduled(e) = false
+}
+
+executebernardo_confronts_brit(e: Events, c1: Players, c2: Players, l: Locations, o: Observers) {
+at(c1, l);
+at(c2, l);
+public (c2) shattered(c2) = true;
+impossible(murder) = true;
+completed(e) = true;
+scheduled(e) = false
+}
+
+executebrit_meets_fortinbras(e: Events, c1: Players, l: Locations, o: Observers) {
+at(c1, l);
+public(o) knows(brit_is_a_spy) = true;
+completed(e) = true;
+scheduled(e) = false
+}
+
+executebernardo_interrogates_brit(e: Events, c1: Players, c2: Players, l: Locations, o: Observers) {
+at(c1, l);
+at(c2, l);
+completed(e) = true;
+scheduled(e) = false
+}
+
+executebernardo_interrogates_polonius(e: Events, c1: Players, c2: Players, l: Locations, o: Observers) {
+at(c1, l);
+at(c2, l);
+completed(e) = true;
+scheduled(e) = false
+}
+
+executebernardo_interrogates_hamlet(e: Events, c1: Players, c2: Players, l: Locations, o: Observers) {
+at(c1, l);
+at(c2, l);
+public (o) believes(brit_meets_at_docks, o) = true;
+completed(e) = true;
+scheduled(e) = false
+}
+
+executelaertes_confesses_brit(e: Events, c1: Players, c2: Players, l: Locations, o: Observers) {
+at(c1, l);
+at(c2, l);
+public(o) knows(brit_is_a_spy) = true;
+completed(e) = true;
+scheduled(e) = false
+}
+
+executelaertes_kills_hamlet(e: Events, c1: Players, c2: Players, l: Locations, o: Observers) {
+at(c1, l);
+at(c2, l);
+dead(c2) = true;
+completed(e) = true;
+scheduled(e) = false
+}
+
+executelaertes_meets_brit(e: Events, c1: Players, c2: Players, l: Locations, o: Observers) {
+at(c1, l);
+at(c2, l);
+completed(e) = true;
+scheduled(e) = false
+}
+
+executelaertes_makes_plan(e: Events, c1: Players, c2: Players, l: Locations, o: Observers) {
+at(c1, l);
+at(c2, l);
+public (c2) believes(ophelia_in_danger, c2) = true;
+completed(e) = true;
+scheduled(e) = false
+}
+
+executehamlet_kills_polonius(e: Events, c1: Players, c2: Players, l: Locations, o: Observers) {
+at(c1, l);
+at(c2, l);
+dead(c2) = true;
+completed(e) = true;
+scheduled(e) = false
+}
+
+executemurder(e: Events, c1: Players, c2: Players, l: Locations, o: Observers) {
+dead(c1) = true;
+public(o) knows(im_in_danger) = true;
+completed(e) = true;
+scheduled(e) = false
+}
+
+executelaertes_leaves(e: Events, c1: Players, c2: Players, l: Locations, o: Observers) {
+at(c1, l);
+at(c2, l);
+gone(laertes) = true;
+completed(e) = true;
+scheduled(e) = false
+}
+
+executepolonius_lecture(e: Events, c1: Players, c2: Players, c3: Players, l: Locations, o: Observers) {
+completed(e) = true;
+scheduled(e) = false
+}
+
+executecastle_briefing(e: Events, c1: Players, c2: Players, l: Locations, o: Observers) {
+at(c1, l);
+at(c2, l);
+public(o) knows(spy_in_elsinore) = true;
+completed(e) = true;
+scheduled(e) = false
+}
+
+executebernardo_busy(e: Events, c1: Players) {
+busy(c1) = true;
+completed(e) = true;
+scheduled(e) = false
+}
+
+executebernardo_not_busy(e: Events, c1: Players) {
+busy(c1) = false;
+completed(e) = true;
+scheduled(e) = false
+}
+
+Initial:
+at(Ophelia) = l1()
+at(p1) = l1()
+at(p2) = l2()
+at(p3) = l3()
+at(p4) = l4()
+looks like (Ophelia, p1, p2, p3, p4): Initial
+
+Execute:
+$$
+print: model
+
+Done.
